@@ -22,7 +22,7 @@ def main():
     scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
 
     check_url_parser = subparsers.add_parser("check-url", help="Check url")
-    check_url_parser.add_argument('--url', default="https://www.linkedin.com/in/cesardesouzacardoso/", help='Url to check')
+    check_url_parser.add_argument('--url', default="https://cesarcardoso.cc/", help='Url to check')
 
     #TODO: What is that?
     #seed_parser.set_defaults(func=seed)
