@@ -14,7 +14,7 @@ def classify_urls(recursive=False):
         for index, row_prefix in df.iterrows():
             df_urls = urls_manager.get_url_like_unclassified(row_prefix['url_prefix'])
             for index, row_urls in df_urls.iterrows():
-                urls_manager.set_url_prefix_by_id(row_urls['id'], row_prefix['id'])
+                urls_manager.set_url_type_by_id(row_urls['id'], row_prefix['url_type'])
 
         if not recursive:
             print('ending...')

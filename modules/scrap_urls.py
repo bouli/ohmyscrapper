@@ -45,11 +45,10 @@ def process_linkedin_job(url_report, url):
         urls_manager.set_url_description(url['url'], url_report['og:description'])
 
 def process_linkedin_post(url_report, url):
-    print('linkedin_post')
-
-    print(url['url'],": ", url_report['h1'])
-
+    print('linkedin_post or generic')
+    print(url['url'])
     if('h1' in url_report.keys()):
+        print(url['url'],": ", url_report['h1'])
         urls_manager.set_url_h1(url['url'], url_report['h1'])
     else:
         if('og:title' in url_report.keys()):
@@ -72,50 +71,51 @@ def scrap_url(url):
     url_valid_prefixes = df.set_index(df.id).T.to_dict()
 
     #TODO: Need to change this
-    if not isinstance(url['urls_valid_prefix_id'], int):
-        url['urls_valid_prefix_id'] = 0
 
-    url_valid_prefixes[0] = {'url_type': 'generic'}
-
-    print("\n\n", url_valid_prefixes[url['urls_valid_prefix_id']]['url_type']+ ":", url['url'])
-    #if url_valid_prefixes[url['urls_valid_prefix_id']]['url_type'] != 'linkedin_redirect':
-    #    return
+    if url['url_type'] is None:
+        print("\n\ngeneric:", url['url'])
+        url['url_type'] = 'generic'
+    else:
+        print("\n\n", url['url_type']+ ":", url['url'])
     try:
         url_report = sniff_url.get_tags(url['url'])
     except Exception as e:
-        urls_manager.set_url_error(url['url'], "errpr")
+        urls_manager.set_url_error(url['url'], "error")
         urls_manager.touch_url(url['url'])
         print("\n\n!!! ERROR FOR:", url['url'])
         print("\n\n!!! you can check the URL using the command sniff-url", url['url'], "\n\n")
         return
 
     #linkedin_redirect - linkedin (https://lnkd.in/)
-    if url_valid_prefixes[url['urls_valid_prefix_id']]['url_type'] == 'linkedin_redirect':
+    if url['url_type'] == 'linkedin_redirect':
         process_linkedin_redirect(url_report, url)
 
     #linkedin_feed - linkedin (https://%.linkedin.com/feed/)
-    if url_valid_prefixes[url['urls_valid_prefix_id']]['url_type'] == 'linkedin_feed':
+    if url['url_type'] == 'linkedin_feed':
         process_linkedin_feed(url_report, url)
 
      #linkedin_job - linkedin (https://www.linkedin.com/jobs/)
-    if url_valid_prefixes[url['urls_valid_prefix_id']]['url_type'] == 'linkedin_job':
+    if url['url_type'] == 'linkedin_job':
         process_linkedin_job(url_report, url)
 
     #linkedin_job - linkedin (https://www.linkedin.com/jobs/)
-    if url_valid_prefixes[url['urls_valid_prefix_id']]['url_type'] == 'linkedin_post' or url_valid_prefixes[url['urls_valid_prefix_id']]['url_type'] == 'generic':
+    if url['url_type'] == 'linkedin_post' or url['url_type'] == 'generic':
         process_linkedin_post(url_report, url)
 
     urls_manager.set_url_json(url['url'], url_report['json'])
     urls_manager.touch_url(url['url'])
 
 
+def isNaN(num):
+    return num != num
 
 def scrap_urls(recursive=False, ignore_valid_prefix=False):
+    classify_urls.classify_urls()
     urls = urls_manager.get_untouched_urls(ignore_valid_prefix=ignore_valid_prefix)
     for index, url in urls.iterrows():
         scrap_url(url)
 
-        wait = random.randint(1, 4)
+        wait = random.randint(15, 20)
         print('sleeping for', wait, 'seconds')
         time.sleep(wait)
 

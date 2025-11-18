@@ -18,7 +18,7 @@ conn = get_db_connection()
 def create_tables():
 
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, urls_valid_prefix_id INTEGER, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, last_touch DATETIME, created_at DATETIME)")
+    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, last_touch DATETIME, created_at DATETIME)")
     #c.execute("DROP TABLE IF EXISTS urls_valid_prefix")
 
     c.execute("CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)")
@@ -80,7 +80,7 @@ def get_url_by_url(url):
     return df
 
 def get_url_like_unclassified(like_condition):
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url LIKE '{like_condition}' AND urls_valid_prefix_id IS NULL", conn)
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url LIKE '{like_condition}' AND url_type IS NULL", conn)
     return df
 
 def add_url(url, h1 = None, parent_id = None):
@@ -138,9 +138,9 @@ def set_url_error(url, value):
 
 
 
-def set_url_prefix_by_id(url_id, prefix_id):
+def set_url_type_by_id(url_id, url_type):
     c = conn.cursor()
-    c.execute("UPDATE urls SET urls_valid_prefix_id = ? WHERE id = ?", (prefix_id, url_id))
+    c.execute(f"UPDATE urls SET url_type = '{url_type}' WHERE id = {url_id}")
     conn.commit()
 
 
@@ -165,7 +165,7 @@ def get_untouched_urls(limit = 10, random = True, ignore_valid_prefix = False):
     if ignore_valid_prefix:
         valid_prefix_sql = ""
     else:
-        valid_prefix_sql = " urls_valid_prefix_id IS NOT NULL AND "
+        valid_prefix_sql = " url_type IS NOT NULL AND "
     if random:
         random_sql = " RANDOM() "
     else:
