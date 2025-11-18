@@ -7,8 +7,8 @@ from modules.scrap_urls import scrap_urls
 from modules.show import show_urls, show_urls_valid_prefix
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    parser = argparse.ArgumentParser(prog="ohmyscraper")
+    parser.add_argument('--version', action='version', version='%(prog)s v0.1.0')
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
