@@ -18,7 +18,7 @@ conn = get_db_connection()
 def create_tables():
 
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, urls_valid_prefix_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, description TEXT, last_touch DATETIME, created_at DATETIME)")
+    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, urls_valid_prefix_id INTEGER, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, last_touch DATETIME, created_at DATETIME)")
     #c.execute("DROP TABLE IF EXISTS urls_valid_prefix")
 
     c.execute("CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)")
@@ -27,11 +27,13 @@ def create_tables():
 
 #TODO: not sure this should be something. depends on the project
 def seeds():
+    create_tables()
 
     add_urls_valid_prefix("https://%.linkedin.com/posts/%", "linkedin_post")
     add_urls_valid_prefix("https://lnkd.in/%", "linkedin_redirect")
     add_urls_valid_prefix("https://%.linkedin.com/jobs/view/%", "linkedin_job")
     add_urls_valid_prefix("https://%.linkedin.com/feed/%", "linkedin_feed")
+    add_urls_valid_prefix("https://%.linkedin.com/company/%", "linkedin_company")
 
     #add_urls_valid_prefix("%.pdf", "pdf")
     #add_url('https://imazon.org.br/categorias/artigos-cientificos/')
@@ -49,6 +51,10 @@ def add_urls_valid_prefix(url_prefix, url_type):
 
 def get_urls_valid_prefix_by_type(url_type):
     df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix WHERE url_type = '{url_type}'", conn)
+    return df
+
+def get_urls_valid_prefix_by_id(id):
+    df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix WHERE id = '{id}'", conn)
     return df
 
 #TODO: pagination required
@@ -77,12 +83,12 @@ def get_url_like_unclassified(like_condition):
     df = pd.read_sql_query(f"SELECT * FROM urls WHERE url LIKE '{like_condition}' AND urls_valid_prefix_id IS NULL", conn)
     return df
 
-def add_url(url, h1 = None):
+def add_url(url, h1 = None, parent_id = None):
     url = clean_url(url)
     c = conn.cursor()
 
     if len(get_url_by_url(url)) == 0:
-        c.execute("INSERT INTO urls (url, h1, created_at) VALUES (?, ?, ?)", (url, h1, int(time.time())))
+        c.execute("INSERT INTO urls (url, h1, parent_id, created_at) VALUES (?, ?, ?, ?)", (url, h1, parent_id, int(time.time())))
         conn.commit()
 
     return get_url_by_url(url)
@@ -92,7 +98,10 @@ def set_url_destiny(url, destiny):
     url = clean_url(url)
     destiny = clean_url(destiny)
     c = conn.cursor()
+    url_obj = get_url_by_url(url)
     c.execute("UPDATE urls SET url_destiny = ? WHERE url = ?", (destiny, url))
+    c.execute("UPDATE urls SET parent_id = ? WHERE url = ?", (int(url_obj.iloc[0]['id']), destiny))
+
     conn.commit()
 
 def set_url_h1(url, value):
@@ -107,13 +116,40 @@ def set_url_description(url, value):
     c.execute("UPDATE urls SET description = ? WHERE url = ?", (value, url))
     conn.commit()
 
+def set_url_description_links(url, value):
+    url = clean_url(url)
+    c = conn.cursor()
+    c.execute("UPDATE urls SET description_links = ? WHERE url = ?", (value, url))
+    conn.commit()
+
+
+
+def set_url_json(url, value):
+    url = clean_url(url)
+    c = conn.cursor()
+    c.execute("UPDATE urls SET json = ? WHERE url = ?", (value, url))
+    conn.commit()
+
+def set_url_error(url, value):
+    url = clean_url(url)
+    c = conn.cursor()
+    c.execute("UPDATE urls SET error = ? WHERE url = ?", (value, url))
+    conn.commit()
+
+
+
 def set_url_prefix_by_id(url_id, prefix_id):
     c = conn.cursor()
-    c.execute("UPDATE urls SET urls_valid_prefix_id = ? WHERE url = ?", (prefix_id, url_id))
+    c.execute("UPDATE urls SET urls_valid_prefix_id = ? WHERE id = ?", (prefix_id, url_id))
     conn.commit()
 
 
 def clean_url(url):
+    if url[0:7] == 'http://':
+        url = 'https://' + url[7:]
+
+    if url[0:8] != 'https://':
+        url = 'https://' + url
     url = url.split('#')[0]
     old_query = urlparse(url).query.split('&')
     new_query = []
@@ -125,11 +161,17 @@ def clean_url(url):
     return url
 
 
-def get_untouched_urls(limit = 10, random = True):
-    if random:
-        df = pd.read_sql_query(f"SELECT * FROM urls WHERE urls_valid_prefix_id IS NOT NULL AND last_touch IS NULL ORDER BY RANDOM() LIMIT {limit}", conn)
+def get_untouched_urls(limit = 10, random = True, ignore_valid_prefix = False):
+    if ignore_valid_prefix:
+        valid_prefix_sql = ""
     else:
-        df = pd.read_sql_query(f"SELECT * FROM urls WHERE urls_valid_prefix_id IS NOT NULL AND last_touch IS NULL ORDER BY created_at DESC LIMIT {limit}", conn)
+        valid_prefix_sql = " urls_valid_prefix_id IS NOT NULL AND "
+    if random:
+        random_sql = " RANDOM() "
+    else:
+        random_sql = " created_at DESC "
+
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE 1 = 1 AND {valid_prefix_sql} last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}", conn)
     return df
 
 

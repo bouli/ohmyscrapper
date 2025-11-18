@@ -1,10 +1,11 @@
 import argparse
 from modules.classify_urls import classify_urls
-from modules.check_url import check_url
+from modules.sniff_url import sniff_url
 from modules.load_txt import load_txt
 from modules.seed import seed
 from modules.scrap_urls import scrap_urls
-from modules.show import show_urls, show_urls_valid_prefix
+from modules.show import show_url, show_urls, show_urls_valid_prefix
+from modules.untouch_all import untouch_all
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscraper")
@@ -13,6 +14,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     seed_parser = subparsers.add_parser("seed", help="Seed database. Necessary to classify urls.")
+    untouch_parser = subparsers.add_parser("untouch-all", help="Untouch all urls. That resets classification")
 
     classify_urls_parser = subparsers.add_parser("classify-urls", help="Classify loaded urls")
     classify_urls_parser.add_argument('--recursive', default=False, help='Run in recursive mode', action='store_true')
@@ -21,13 +23,16 @@ def main():
     load_txt_parser.add_argument('--file', default="input/_chat.txt", help='File path. Default is input/_chat.txt')
 
     scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
+    scrap_urls_parser.add_argument('--recursive', default=False, help='Run in recursive mode', action='store_true')
+    scrap_urls_parser.add_argument('--ignore-valid-prefix', default=False, help='Ignore urls with valid prefix', action='store_true')
 
-    check_url_parser = subparsers.add_parser("check-url", help="Check url")
-    check_url_parser.add_argument('--url', default="https://cesarcardoso.cc/", help='Url to check')
+    sniff_url_parser = subparsers.add_parser("sniff-url", help="Check url")
+    sniff_url_parser.add_argument('url', default="https://cesarcardoso.cc/", help='Url to sniff')
 
     show_urls_parser = subparsers.add_parser("show", help="Show urls and prefixes")
     show_urls_parser.add_argument("--prefixes", default=False, help="Show urls valid prefix", action='store_true')
     show_urls_parser.add_argument("--limit", default=0, help="Limit of lines to show")
+    show_urls_parser.add_argument("-url", default="", help="Url to show")
 
 
     #TODO: What is that?
@@ -42,26 +47,32 @@ def main():
         return
 
     if args.command == 'load-txt':
-        load_txt(args.file_name)
+        load_txt(args.file)
         return
 
     if args.command == 'seed':
         seed()
         return
 
-    if args.command == 'check-url':
-        check_url(args.url)
+    if args.command == 'untouch-all':
+        untouch_all()
+        return
+
+    if args.command == 'sniff-url':
+        sniff_url(args.url)
         return
 
     if args.command == 'scrap-urls':
-        scrap_urls()
+        scrap_urls(recursive=args.recursive, ignore_valid_prefix=args.ignore_valid_prefix)
         return
 
     if args.command == 'show':
         if args.prefixes:
             show_urls_valid_prefix(int(args.limit))
             return
-
+        if args.url != "":
+            show_url(args.url)
+            return
         show_urls(int(args.limit))
         return
 
