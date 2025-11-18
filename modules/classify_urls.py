@@ -6,19 +6,15 @@ import time
 
 def classify_urls(recursive=False):
     urls_manager.seeds()
-    df = pd.read_sql_query("SELECT * FROM urls_valid_prefix", urls_manager.conn)
+    df = urls_manager.get_urls_valid_prefix()
 
     keep_alive = True
     while keep_alive:
         print('waking up!')
-        for index, row in df.iterrows():
-            sql_query = "SELECT * FROM urls WHERE url LIKE '" + row['url_prefix'] + "' AND urls_valid_prefix_id IS NULL"
-            df_urls = pd.read_sql_query(sql_query, urls_manager.conn)
+        for index, row_prefix in df.iterrows():
+            df_urls = urls_manager.get_url_like_unclassified(row_prefix['url_prefix'])
             for index, row_urls in df_urls.iterrows():
-                sql_query = "UPDATE urls SET urls_valid_prefix_id = " + str(row['id']) + " WHERE id = " + str(row_urls['id'])
-                print(sql_query)
-                urls_manager.conn.cursor().execute(sql_query)
-                urls_manager.conn.commit()
+                urls_manager.set_url_prefix_by_id(row_urls['id'], row_prefix['id'])
 
         if not recursive:
             print('ending...')

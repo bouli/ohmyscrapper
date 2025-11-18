@@ -4,6 +4,7 @@ from modules.check_url import check_url
 from modules.load_txt import load_txt
 from modules.seed import seed
 from modules.scrap_urls import scrap_urls
+from modules.show import show_urls, show_urls_valid_prefix
 
 def main():
     parser = argparse.ArgumentParser()
@@ -23,6 +24,11 @@ def main():
 
     check_url_parser = subparsers.add_parser("check-url", help="Check url")
     check_url_parser.add_argument('--url', default="https://cesarcardoso.cc/", help='Url to check')
+
+    show_urls_parser = subparsers.add_parser("show", help="Show urls and prefixes")
+    show_urls_parser.add_argument("--prefixes", default=False, help="Show urls valid prefix", action='store_true')
+    show_urls_parser.add_argument("--limit", default=0, help="Limit of lines to show")
+
 
     #TODO: What is that?
     #seed_parser.set_defaults(func=seed)
@@ -50,6 +56,15 @@ def main():
     if args.command == 'scrap-urls':
         scrap_urls()
         return
+
+    if args.command == 'show':
+        if args.prefixes:
+            show_urls_valid_prefix(int(args.limit))
+            return
+
+        show_urls(int(args.limit))
+        return
+
 
 if __name__ == "__main__":
     main()

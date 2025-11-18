@@ -51,8 +51,20 @@ def get_urls_valid_prefix_by_type(url_type):
     df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix WHERE url_type = '{url_type}'", conn)
     return df
 
-def get_urls_valid_prefix():
-    df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix", conn)
+#TODO: pagination required
+def get_urls_valid_prefix(limit = 0):
+    if limit > 0:
+        df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix LIMIT {limit}", conn)
+    else:
+        df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix", conn)
+    return df
+
+#TODO: pagination required
+def get_urls(limit = 0):
+    if limit > 0:
+        df = pd.read_sql_query(f"SELECT * FROM urls LIMIT {limit}", conn)
+    else:
+        df = pd.read_sql_query(f"SELECT * FROM urls", conn)
     return df
 
 def get_url_by_url(url):
@@ -61,6 +73,9 @@ def get_url_by_url(url):
 
     return df
 
+def get_url_like_unclassified(like_condition):
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url LIKE '{like_condition}' AND urls_valid_prefix_id IS NULL", conn)
+    return df
 
 def add_url(url, h1 = None):
     url = clean_url(url)
@@ -90,6 +105,11 @@ def set_url_description(url, value):
     url = clean_url(url)
     c = conn.cursor()
     c.execute("UPDATE urls SET description = ? WHERE url = ?", (value, url))
+    conn.commit()
+
+def set_url_prefix_by_id(url_id, prefix_id):
+    c = conn.cursor()
+    c.execute("UPDATE urls SET urls_valid_prefix_id = ? WHERE url = ?", (prefix_id, url_id))
     conn.commit()
 
 
