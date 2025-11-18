@@ -20,11 +20,11 @@ def main():
     classify_urls_parser.add_argument('--recursive', default=False, help='Run in recursive mode', action='store_true')
 
     load_txt_parser = subparsers.add_parser("load-txt", help="Load txt file")
-    load_txt_parser.add_argument('--file', default="input/_chat.txt", help='File path. Default is input/_chat.txt')
+    load_txt_parser.add_argument('-file', default="input/_chat.txt", help='File path. Default is input/_chat.txt')
 
     scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
     scrap_urls_parser.add_argument('--recursive', default=False, help='Run in recursive mode', action='store_true')
-    scrap_urls_parser.add_argument('--ignore-valid-prefix', default=False, help='Ignore urls with valid prefix', action='store_true')
+    scrap_urls_parser.add_argument('--ignore-type', default=False, help='Ignore urls types', action='store_true')
 
     sniff_url_parser = subparsers.add_parser("sniff-url", help="Check url")
     sniff_url_parser.add_argument('url', default="https://cesarcardoso.cc/", help='Url to sniff')
@@ -63,7 +63,7 @@ def main():
         return
 
     if args.command == 'scrap-urls':
-        scrap_urls(recursive=args.recursive, ignore_valid_prefix=args.ignore_valid_prefix)
+        scrap_urls(recursive=args.recursive, ignore_valid_prefix=args.ignore_type)
         return
 
     if args.command == 'show':
