@@ -14,7 +14,9 @@ I recomend to use a virtual environment, but you can make it directely.
 That's optional:
 ```shell
 python3 -m venv venv
+source venv/bin/activate
 ```
+> For windows, you can check [this video here](https://www.youtube.com/watch?v=OPEZw18T47M)
 
 And install dependencies:
 ```shell
