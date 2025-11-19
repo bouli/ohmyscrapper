@@ -12,11 +12,17 @@ def process_linkedin_redirect(url_report, url):
     print('linkedin_redirect')
 
     if url_report['total-a-links'] < 5:
-        url_destiny = url_report['first-a-link']
+        if "first-a-link" in url_report.keys():
+            url_destiny = url_report['first-a-link']
+        else:
+            urls_manager.set_url_error(url['url'], "error: no first-a-link")
+            print("no url for:", url['url'])
+            return
     else:
         if "og:url" in url_report.keys():
             url_destiny = url_report['og:url']
         else:
+            urls_manager.set_url_error(url['url'], "error: no og:url")
             print("no url for:", url['url'])
             return
 
@@ -26,7 +32,14 @@ def process_linkedin_redirect(url_report, url):
 
 def process_linkedin_feed(url_report, url):
     print('linkedin_feed')
-    url_destiny = url_report["og:url"]
+
+    if "og:url" in url_report.keys():
+        url_destiny = url_report["og:url"]
+    else:
+        urls_manager.set_url_error(url['url'], "error: no og:url")
+        print("no url for:", url['url'])
+        return
+
 
     print(url['url'],">>", url_destiny)
     urls_manager.add_url(url_destiny)
@@ -34,35 +47,51 @@ def process_linkedin_feed(url_report, url):
 
 def process_linkedin_job(url_report, url):
     print('linkedin_job')
-
-    print(url['url'],": ", url_report['h1'])
-
-    urls_manager.set_url_h1(url['url'], url_report['h1'])
+    changed = False
+    if "h1" in url_report.keys():
+        print(url['url'],": ", url_report['h1'])
+        urls_manager.set_url_h1(url['url'], url_report['h1'])
+        changed = True
+    elif "og:title" in url_report.keys():
+        print(url['url'],": ", url_report['og:title'])
+        urls_manager.set_url_h1(url['url'], url_report['og:title'])
+        changed = True
 
     if "description" in url_report.keys():
         urls_manager.set_url_description(url['url'], url_report['description'])
+        changed = True
     elif "og:description" in url_report.keys():
         urls_manager.set_url_description(url['url'], url_report['og:description'])
+        changed = True
+    if not changed:
+        urls_manager.set_url_error(url['url'], "error: no h1 or description")
 
 def process_linkedin_post(url_report, url):
     print('linkedin_post or generic')
     print(url['url'])
+    changed = False
     if('h1' in url_report.keys()):
         print(url['url'],": ", url_report['h1'])
         urls_manager.set_url_h1(url['url'], url_report['h1'])
-    else:
-        if('og:title' in url_report.keys()):
-            urls_manager.set_url_h1(url['url'], url_report['og:title'])
+        changed = True
+    elif('og:title' in url_report.keys()):
+        urls_manager.set_url_h1(url['url'], url_report['og:title'])
+        changed = True
     description = None
     if "description" in url_report.keys():
         description = url_report['description']
+        changed = True
     elif "og:description" in url_report.keys():
         description = url_report['og:description']
+        changed = True
 
+    if description is not None:
+        urls_manager.set_url_description(url['url'], description)
+        description_links = load_txt.put_urls_from_string(description, url['id'])
+        urls_manager.set_url_description_links(url['url'], description_links)
 
-    urls_manager.set_url_description(url['url'], description)
-    description_links = load_txt.put_urls_from_string(description, url['id'])
-    urls_manager.set_url_description_links(url['url'], description_links)
+    if not changed:
+        urls_manager.set_url_error(url['url'], "error: no h1 or description")
 
 
 def scrap_url(url):
