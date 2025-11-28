@@ -11,3 +11,6 @@ start:
 
 continue:
 	python3 main.py scrap-urls --recursive --ignore-type
+
+export:
+	python3 main.py export
