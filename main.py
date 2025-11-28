@@ -4,7 +4,7 @@ from modules.sniff_url import sniff_url
 from modules.load_txt import load_txt
 from modules.seed import seed
 from modules.scrap_urls import scrap_urls
-from modules.show import show_url, show_urls, show_urls_valid_prefix
+from modules.show import show_url, show_urls, show_urls_valid_prefix, export_urls
 from modules.untouch_all import untouch_all
 
 def main():
@@ -34,6 +34,9 @@ def main():
     show_urls_parser.add_argument("--limit", default=0, help="Limit of lines to show")
     show_urls_parser.add_argument("-url", default="", help="Url to show")
 
+    export_parser = subparsers.add_parser("export", help="Export urls to csv.")
+    export_parser.add_argument("--limit", default=0, help="Limit of lines to export")
+    export_parser.add_argument("--file", default="urls.csv", help="File path. Default is urls.csv")
 
     #TODO: What is that?
     #seed_parser.set_defaults(func=seed)
@@ -74,6 +77,10 @@ def main():
             show_url(args.url)
             return
         show_urls(int(args.limit))
+        return
+
+    if args.command == 'export':
+        export_urls(int(args.limit), args.file)
         return
 
 
