@@ -138,13 +138,17 @@ def scrap_url(url):
 def isNaN(num):
     return num != num
 
-def scrap_urls(recursive=False, ignore_valid_prefix=False):
+def scrap_urls(recursive=False, ignore_valid_prefix=False,randomize=False,only_parents=True):
     classify_urls.classify_urls()
-    urls = urls_manager.get_untouched_urls(ignore_valid_prefix=ignore_valid_prefix)
+    urls = urls_manager.get_untouched_urls(ignore_valid_prefix=ignore_valid_prefix,randomize=randomize,only_parents=only_parents)
+    if len(urls) == 0:
+        print('no urls to scrap')
+        return
     for index, url in urls.iterrows():
         scrap_url(url)
 
         wait = random.randint(15, 20)
+        wait = random.randint(1, 3)
         print('sleeping for', wait, 'seconds')
         time.sleep(wait)
 
@@ -153,6 +157,6 @@ def scrap_urls(recursive=False, ignore_valid_prefix=False):
         wait = random.randint(5, 10)
         print('sleeping for', wait, 'seconds before next round')
         time.sleep(wait)
-        scrap_urls(recursive)
+        scrap_urls(recursive=recursive, ignore_valid_prefix=ignore_valid_prefix,randomize=randomize,only_parents=only_parents)
     else:
         print('ending...')

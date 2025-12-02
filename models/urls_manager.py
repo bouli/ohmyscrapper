@@ -18,8 +18,8 @@ conn = get_db_connection()
 def create_tables():
 
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, last_touch DATETIME, created_at DATETIME)")
-    #c.execute("DROP TABLE IF EXISTS urls_valid_prefix")
+    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, ai_processed INTEGER, last_touch DATETIME, created_at DATETIME)")
+    c.execute("CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, created_at DATETIME)")
 
     c.execute("CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)")
 
@@ -79,20 +79,45 @@ def get_url_by_url(url):
 
     return df
 
+def get_url_by_id(id):
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE id = '{id}'", conn)
+
+    return df
+
+def get_urls_by_url_type(url_type):
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}'", conn)
+    return df
+
+def get_urls_by_url_type_for_ai_process(url_type):
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}' AND ai_processed = 0", conn)
+    return df
+
 def get_url_like_unclassified(like_condition):
     df = pd.read_sql_query(f"SELECT * FROM urls WHERE url LIKE '{like_condition}' AND url_type IS NULL", conn)
     return df
+
 
 def add_url(url, h1 = None, parent_id = None):
     url = clean_url(url)
     c = conn.cursor()
 
+    if h1 is not None:
+        h1 = h1.strip()
+
+    if parent_id is not None:
+        parent_id = int(parent_id)
+
     if len(get_url_by_url(url)) == 0:
-        c.execute("INSERT INTO urls (url, h1, parent_id, created_at) VALUES (?, ?, ?, ?)", (url, h1, parent_id, int(time.time())))
+        c.execute("INSERT INTO urls (url, h1, parent_id, created_at, ai_processed) VALUES (?, ?, ?, ?, 0)", (url, h1, parent_id, int(time.time())))
         conn.commit()
 
     return get_url_by_url(url)
 
+def add_ai_log(instructions, response, model):
+    c = conn.cursor()
+
+    c.execute("INSERT INTO ai_log (instructions, response, model, created_at) VALUES (?, ?, ?, ?)", (instructions, response, model, int(time.time())))
+    conn.commit()
 
 def set_url_destiny(url, destiny):
     url = clean_url(url)
@@ -105,9 +130,33 @@ def set_url_destiny(url, destiny):
     conn.commit()
 
 def set_url_h1(url, value):
+    value = str(value).strip()
     url = clean_url(url)
     c = conn.cursor()
     c.execute("UPDATE urls SET h1 = ? WHERE url = ?", (value, url))
+    conn.commit()
+
+def set_url_h1_by_id(id, value):
+    value = str(value).strip()
+
+    c = conn.cursor()
+    c.execute("UPDATE urls SET h1 = ? WHERE id = ?", (value, id))
+    conn.commit()
+
+def set_url_ai_processed_by_id(id):
+    value = 1
+    value = str(value).strip()
+    c = conn.cursor()
+    c.execute("UPDATE urls SET ai_processed = ? WHERE id = ?", (value, id))
+    conn.commit()
+
+
+def set_url_ai_processed_by_url(url):
+    value = 1
+    value = str(value).strip()
+    url = clean_url(url)
+    c = conn.cursor()
+    c.execute("UPDATE urls SET ai_processed = ? WHERE url = ?", (value, url))
     conn.commit()
 
 def set_url_description(url, value):
@@ -161,17 +210,21 @@ def clean_url(url):
     return url
 
 
-def get_untouched_urls(limit = 10, random = True, ignore_valid_prefix = False):
-    if ignore_valid_prefix:
-        valid_prefix_sql = ""
-    else:
-        valid_prefix_sql = " url_type IS NOT NULL AND "
-    if random:
+def get_untouched_urls(limit = 10, randomize = True, ignore_valid_prefix = False, only_parents = True):
+    where_sql = ""
+    if not ignore_valid_prefix:
+        where_sql += " AND url_type IS NOT NULL "
+
+    if only_parents:
+        where_sql += " AND parent_id IS NULL "
+
+    if randomize:
         random_sql = " RANDOM() "
     else:
         random_sql = " created_at DESC "
-
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE 1 = 1 AND {valid_prefix_sql} last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}", conn)
+    sql = f"SELECT * FROM urls WHERE 1 = 1 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}"
+    print(sql)
+    df = pd.read_sql_query(sql, conn)
     return df
 
 

@@ -3,10 +3,11 @@ import math
 from rich.console import Console
 from rich.table import Table
 
-def export_urls(limit=0, csv_file='urls.csv'):
+def export_urls(limit=0, csv_file='output/urls.csv'):
     df = urls_manager.get_urls(limit)
     df.drop(columns=['json'], inplace=True)
     df.to_csv(csv_file, index=False)
+    print("Urls exported to", csv_file )
 
 def show_urls(limit=0, jump_to_page=0):
     df = urls_manager.get_urls(limit)

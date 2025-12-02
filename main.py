@@ -6,6 +6,7 @@ from modules.seed import seed
 from modules.scrap_urls import scrap_urls
 from modules.show import show_url, show_urls, show_urls_valid_prefix, export_urls
 from modules.untouch_all import untouch_all
+from modules.process_with_ai import process_with_ai
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscraper")
@@ -13,6 +14,7 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
+    ai_process_parser = subparsers.add_parser("process-with-ai", help="Process with AI.")
     seed_parser = subparsers.add_parser("seed", help="Seed database. Necessary to classify urls.")
     untouch_parser = subparsers.add_parser("untouch-all", help="Untouch all urls. That resets classification")
 
@@ -25,6 +27,8 @@ def main():
     scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
     scrap_urls_parser.add_argument('--recursive', default=False, help='Run in recursive mode', action='store_true')
     scrap_urls_parser.add_argument('--ignore-type', default=False, help='Ignore urls types', action='store_true')
+    scrap_urls_parser.add_argument('--randomize', default=False, help='Random order', action='store_true')
+    scrap_urls_parser.add_argument('--only-parents', default=False, help='Only parents urls', action='store_true')
 
     sniff_url_parser = subparsers.add_parser("sniff-url", help="Check url")
     sniff_url_parser.add_argument('url', default="https://cesarcardoso.cc/", help='Url to sniff')
@@ -36,7 +40,7 @@ def main():
 
     export_parser = subparsers.add_parser("export", help="Export urls to csv.")
     export_parser.add_argument("--limit", default=0, help="Limit of lines to export")
-    export_parser.add_argument("--file", default="urls.csv", help="File path. Default is urls.csv")
+    export_parser.add_argument("--file", default="output/urls.csv", help="File path. Default is urls.csv")
 
     #TODO: What is that?
     #seed_parser.set_defaults(func=seed)
@@ -66,7 +70,7 @@ def main():
         return
 
     if args.command == 'scrap-urls':
-        scrap_urls(recursive=args.recursive, ignore_valid_prefix=args.ignore_type)
+        scrap_urls(recursive=args.recursive, ignore_valid_prefix=args.ignore_type, randomize=args.randomize, only_parents=args.only_parents)
         return
 
     if args.command == 'show':
@@ -81,6 +85,9 @@ def main():
 
     if args.command == 'export':
         export_urls(int(args.limit), args.file)
+        return
+    if args.command == 'process-with-ai':
+        process_with_ai()
         return
 
 
