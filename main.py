@@ -4,7 +4,7 @@ from modules.sniff_url import sniff_url
 from modules.load_txt import load_txt
 from modules.seed import seed
 from modules.scrap_urls import scrap_urls
-from modules.show import show_url, show_urls, show_urls_valid_prefix, export_urls
+from modules.show import show_url, show_urls, show_urls_valid_prefix, export_urls, export_report
 from modules.untouch_all import untouch_all
 from modules.process_with_ai import process_with_ai
 
@@ -40,8 +40,10 @@ def main():
 
     export_parser = subparsers.add_parser("export", help="Export urls to csv.")
     export_parser.add_argument("--limit", default=0, help="Limit of lines to export")
-    export_parser.add_argument("--file", default="output/urls.csv", help="File path. Default is urls.csv")
+    export_parser.add_argument("--file", default="output/urls.csv", help="File path. Default is output/urls.csv")
+    export_parser.add_argument("--simplify", default=False, help="Ignore json and descriptions", action='store_true')
 
+    report_parser = subparsers.add_parser("report", help="Export urls report to csv.")
     #TODO: What is that?
     #seed_parser.set_defaults(func=seed)
     #classify_urls_parser.set_defaults(func=classify_urls)
@@ -84,12 +86,16 @@ def main():
         return
 
     if args.command == 'export':
-        export_urls(int(args.limit), args.file)
+        export_urls(limit=int(args.limit), csv_file = args.file, simplify=args.simplify)
         return
+
     if args.command == 'process-with-ai':
         process_with_ai()
         return
 
+    if args.command == 'report':
+        export_report()
+        return
 
 if __name__ == "__main__":
     main()

@@ -25,6 +25,8 @@ continue-only-parents:
 
 export:
 	python3 main.py export
+	python3 main.py export --file=output/urls-simplified.csv --simplify
+	python3 main.py report
 
 ai:
 	python main.py process-with-ai

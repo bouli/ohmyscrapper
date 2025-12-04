@@ -3,11 +3,36 @@ import math
 from rich.console import Console
 from rich.table import Table
 
-def export_urls(limit=0, csv_file='output/urls.csv'):
+def export_urls(limit=0, csv_file='output/urls.csv', simplify=False):
     df = urls_manager.get_urls(limit)
-    df.drop(columns=['json'], inplace=True)
+
+    if simplify:
+        df.drop(columns=['description', 'json'], inplace=True)
+
     df.to_csv(csv_file, index=False)
+    print("--------------------")
     print("Urls exported to", csv_file )
+
+    df.replace({
+        'description': {r'\n': ' '},
+    }, regex=True, inplace=True)
+    df.to_html(csv_file + "-preview.html", index=False)
+    print("Urls preview exported to", csv_file + "-preview.html" )
+    print("--------------------")
+
+def export_report(csv_file='output/report.csv'):
+    df = urls_manager.get_urls_report()
+
+    df.to_csv(csv_file, index=False)
+    print("--------------------")
+    print("Urls report exported to", csv_file )
+
+    df.replace({
+        'description': {r'\n': ' '},
+    }, regex=True, inplace=True)
+    df.to_html(csv_file + "-preview.html", index=False)
+    print("Urls report preview exported to", csv_file + "-preview.html" )
+    print("--------------------")
 
 def show_urls(limit=0, jump_to_page=0):
     df = urls_manager.get_urls(limit)
