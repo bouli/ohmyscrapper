@@ -73,6 +73,35 @@ def get_urls(limit = 0):
         df = pd.read_sql_query(f"SELECT * FROM urls", conn)
     return df
 
+def get_urls_report():
+    sql = """
+    WITH parents_id AS (
+        SELECT parent_id FROM urls WHERE parent_id != 0 GROUP BY parent_id
+    ),
+    parents AS (
+        SELECT
+            u.id,
+            u.h1
+            FROM urls u
+                INNER JOIN parents_id p
+                    ON u.id = p.parent_id
+    )
+    SELECT
+        u.id,
+        u.url_type,
+        u.url,
+        u.h1,
+        p.id as parent_id,
+        p.h1 as parent_h1
+        FROM urls u
+        LEFT JOIN parents p
+            ON u.parent_id = p.id
+        WHERE u.id NOT IN (SELECT id FROM parents)
+    """
+    df = pd.read_sql_query(sql, conn)
+
+    return df
+
 def get_url_by_url(url):
     url = clean_url(url)
     df = pd.read_sql_query(f"SELECT * FROM urls WHERE url = '{url}'", conn)
@@ -88,8 +117,8 @@ def get_urls_by_url_type(url_type):
     df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}'", conn)
     return df
 
-def get_urls_by_url_type_for_ai_process(url_type):
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}' AND ai_processed = 0", conn)
+def get_urls_by_url_type_for_ai_process(url_type = 'linkedin_post', limit = 10):
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}' AND ai_processed = 0 LIMIT {limit}", conn)
     return df
 
 def get_url_like_unclassified(like_condition):
@@ -97,18 +126,20 @@ def get_url_like_unclassified(like_condition):
     return df
 
 
-def add_url(url, h1 = None, parent_id = None):
+def add_url(url, h1 = None, parent_id = 0):
     url = clean_url(url)
     c = conn.cursor()
 
     if h1 is not None:
         h1 = h1.strip()
 
-    if parent_id is not None:
-        parent_id = int(parent_id)
+    if parent_id is None:
+        parent_id = 0
+
+    parent_id = int(parent_id)
 
     if len(get_url_by_url(url)) == 0:
-        c.execute("INSERT INTO urls (url, h1, parent_id, created_at, ai_processed) VALUES (?, ?, ?, ?, 0)", (url, h1, parent_id, int(time.time())))
+        c.execute("INSERT INTO urls (url, h1, parent_id, created_at, ai_processed, description_links) VALUES (?, ?, ?, ?, 0, 0)", (url, h1, parent_id, int(time.time())))
         conn.commit()
 
     return get_url_by_url(url)
@@ -216,7 +247,7 @@ def get_untouched_urls(limit = 10, randomize = True, ignore_valid_prefix = False
         where_sql += " AND url_type IS NOT NULL "
 
     if only_parents:
-        where_sql += " AND parent_id IS NULL "
+        where_sql += " AND parent_id = 0 "
 
     if randomize:
         random_sql = " RANDOM() "
