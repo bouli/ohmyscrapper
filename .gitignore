@@ -1,7 +1,9 @@
 venv
+.venv
 __pycache__
 db
 input
-.env
 output
-lab.__pycache_
+.env
+lab.
+.DS_Store
