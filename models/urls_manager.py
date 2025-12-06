@@ -1,13 +1,17 @@
-import sqlite3
 import os
-import pandas as pd
+import sqlite3
 import time
+import glob
+import pandas as pd
 from urllib.parse import urlparse, urlunparse
 
-def get_db_path():
+def get_db_dir():
     if not os.path.exists("db"):
         os.mkdir("db")
-    return "db/local.db"
+    return "db"
+
+def get_db_path():
+    return get_db_dir() + "/local.db"
 
 def get_db_connection():
     return sqlite3.connect(get_db_path())
@@ -18,7 +22,7 @@ conn = get_db_connection()
 def create_tables():
 
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, ai_processed INTEGER, history INTEGER, last_touch DATETIME, created_at DATETIME)")
+    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER DEFAULT 0, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)")
     c.execute("CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, created_at DATETIME)")
 
     c.execute("CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)")
@@ -68,9 +72,9 @@ def get_urls_valid_prefix(limit = 0):
 #TODO: pagination required
 def get_urls(limit = 0):
     if limit > 0:
-        df = pd.read_sql_query(f"SELECT * FROM urls LIMIT {limit}", conn)
+        df = pd.read_sql_query(f"SELECT * FROM urls LIMIT {limit} ORDER BY history ASC", conn)
     else:
-        df = pd.read_sql_query(f"SELECT * FROM urls", conn)
+        df = pd.read_sql_query(f"SELECT * FROM urls ORDER BY history ASC", conn)
     return df
 
 def get_urls_report():
@@ -96,7 +100,7 @@ def get_urls_report():
         FROM urls u
         LEFT JOIN parents p
             ON u.parent_id = p.id
-        WHERE u.id NOT IN (SELECT id FROM parents)
+        WHERE u.history = 0 AND u.id NOT IN (SELECT id FROM parents)
     """
     df = pd.read_sql_query(sql, conn)
 
@@ -114,15 +118,15 @@ def get_url_by_id(id):
     return df
 
 def get_urls_by_url_type(url_type):
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}'", conn)
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE history = 0 AND url_type = '{url_type}'", conn)
     return df
 
 def get_urls_by_url_type_for_ai_process(url_type = 'linkedin_post', limit = 10):
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url_type = '{url_type}' AND ai_processed = 0 LIMIT {limit}", conn)
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE history = 0 AND url_type = '{url_type}' AND ai_processed = 0 LIMIT {limit}", conn)
     return df
 
 def get_url_like_unclassified(like_condition):
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url LIKE '{like_condition}' AND url_type IS NULL", conn)
+    df = pd.read_sql_query(f"SELECT * FROM urls WHERE history = 0 AND url LIKE '{like_condition}' AND url_type IS NULL", conn)
     return df
 
 
@@ -253,7 +257,7 @@ def get_untouched_urls(limit = 10, randomize = True, ignore_valid_prefix = False
         random_sql = " RANDOM() "
     else:
         random_sql = " created_at DESC "
-    sql = f"SELECT * FROM urls WHERE 1 = 1 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}"
+    sql = f"SELECT * FROM urls WHERE 1 = 1 AND history = 0 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}"
     print(sql)
     df = pd.read_sql_query(sql, conn)
     return df
@@ -273,10 +277,41 @@ def untouch_url(url):
 
 def untouch_all_urls():
     c = conn.cursor()
-    c.execute("UPDATE urls SET last_touch = NULL")
+    c.execute("UPDATE urls SET last_touch = NULL WHERE history = 0")
     conn.commit()
 
 def set_all_urls_as_history():
     c = conn.cursor()
     c.execute("UPDATE urls SET history = 1")
     conn.commit()
+
+def merge_dbs() -> None:
+    production_db_file = get_db_path()
+    db_number = -1
+    dir = get_db_dir()
+    list_of_files = glob.glob(dir + '/*.db')
+    list_of_files.remove(production_db_file)
+    if len(list_of_files) > 0:
+        print("\nAvailable dbs:")
+        for index,file in enumerate(list_of_files):
+            print(index,":", file)
+        while db_number < 0 or db_number >= len(list_of_files):
+            db_number = int(input("Choose the db to merge: "))
+
+        print(list_of_files[db_number])
+        source_conn = sqlite3.connect(list_of_files[db_number])
+        df = pd.read_sql_query("SELECT * FROM urls", source_conn)
+        for index, row in df.iterrows():
+            merge_url(row['url'], f"merged from {list_of_files[db_number]}", row['last_touch'], row['created_at'], row['description'], row['json'])
+        #ßmerge_url(df)
+
+def merge_url(url, h1, last_touch, created_at, description, json):
+    url = clean_url(url)
+    c = conn.cursor()
+
+    if h1 is not None:
+        h1 = h1.strip()
+
+    if len(get_url_by_url(url)) == 0:
+        c.execute("INSERT INTO urls (url, h1, last_touch , created_at, history, ai_processed, description_links, description, json) VALUES (?, ?, ?, ?, 1, 0, 0, ? , ?)", (url, h1, last_touch , created_at,description, json))
+        conn.commit()

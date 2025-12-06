@@ -30,3 +30,9 @@ export:
 
 ai:
 	python main.py process-with-ai
+
+seed:
+	python main.py seed
+
+merge_dbs:
+	python main.py merge_dbs

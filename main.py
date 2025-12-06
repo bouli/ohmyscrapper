@@ -7,6 +7,7 @@ from modules.scrap_urls import scrap_urls
 from modules.show import show_url, show_urls, show_urls_valid_prefix, export_urls, export_report
 from modules.untouch_all import untouch_all
 from modules.process_with_ai import process_with_ai
+from modules.merge_dbs import merge_dbs
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscraper")
@@ -44,6 +45,8 @@ def main():
     export_parser.add_argument("--simplify", default=False, help="Ignore json and descriptions", action='store_true')
 
     report_parser = subparsers.add_parser("report", help="Export urls report to csv.")
+    merge_parser = subparsers.add_parser("merge_dbs", help="Merge databases.")
+
     #TODO: What is that?
     #seed_parser.set_defaults(func=seed)
     #classify_urls_parser.set_defaults(func=classify_urls)
@@ -95,6 +98,10 @@ def main():
 
     if args.command == 'report':
         export_report()
+        return
+
+    if args.command == 'merge_dbs':
+        merge_dbs()
         return
 
 if __name__ == "__main__":
