@@ -18,7 +18,7 @@ conn = get_db_connection()
 def create_tables():
 
     c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, ai_processed INTEGER, last_touch DATETIME, created_at DATETIME)")
+    c.execute("CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER, json TEXT, ai_processed INTEGER, history INTEGER, last_touch DATETIME, created_at DATETIME)")
     c.execute("CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, created_at DATETIME)")
 
     c.execute("CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)")
@@ -139,7 +139,7 @@ def add_url(url, h1 = None, parent_id = 0):
     parent_id = int(parent_id)
 
     if len(get_url_by_url(url)) == 0:
-        c.execute("INSERT INTO urls (url, h1, parent_id, created_at, ai_processed, description_links) VALUES (?, ?, ?, ?, 0, 0)", (url, h1, parent_id, int(time.time())))
+        c.execute("INSERT INTO urls (url, h1, parent_id, created_at, ai_processed, description_links, history) VALUES (?, ?, ?, ?, 0, 0, 0)", (url, h1, parent_id, int(time.time())))
         conn.commit()
 
     return get_url_by_url(url)
@@ -274,4 +274,9 @@ def untouch_url(url):
 def untouch_all_urls():
     c = conn.cursor()
     c.execute("UPDATE urls SET last_touch = NULL")
+    conn.commit()
+
+def set_all_urls_as_history():
+    c = conn.cursor()
+    c.execute("UPDATE urls SET history = 1")
     conn.commit()
