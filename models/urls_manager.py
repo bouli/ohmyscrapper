@@ -258,7 +258,6 @@ def get_untouched_urls(limit = 10, randomize = True, ignore_valid_prefix = False
     else:
         random_sql = " created_at DESC "
     sql = f"SELECT * FROM urls WHERE 1 = 1 AND history = 0 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}"
-    print(sql)
     df = pd.read_sql_query(sql, conn)
     return df
 
