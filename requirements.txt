@@ -1,7 +1,0 @@
-requests
-beautifulsoup4
-urlextract
-pandas
-rich
-python-dotenv
-google-genai
