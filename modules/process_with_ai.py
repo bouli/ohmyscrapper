@@ -6,29 +6,37 @@ import random
 import time
 
 load_dotenv()
+
+
 def process_with_ai(recursive=True):
-    url_type = 'linkedin_post'
+    url_type = "linkedin_post"
     df = urls_manager.get_urls_by_url_type_for_ai_process(url_type)
 
     if len(df) == 0:
-        print('no urls to process with ai anymore')
+        print("no urls to process with ai anymore")
         return
     texts = ""
     for index, row in df.iterrows():
-        texts = texts + f"""
+        texts = (
+            texts
+            + f"""
         <texto>
         <id>{str(row['id'])}</id>
         {row['description']}
         </texto>
         """
+        )
     if texts == "":
-        print('no urls to process')
+        print("no urls to process")
         return
 
-    instructions = """
+    instructions = (
+        """
     <contexto>Esses são textos com 1 ou várias vagas de emprego. Quando há mais de uma vaga em um texto, elas são acompanhadas de suas respectivas urls.</contexto>
     <textos>
-    """ + texts + """
+    """
+        + texts
+        + """
     </textos>
     <pergunta>Faça uma lista em `XML` com o número de id de cada texto seguido do nome de cada vaga e, se houver, sua respectiva organização ou empresa na mesma lista. </pergunta>
     <formato_resposta_esperado>
@@ -64,18 +72,17 @@ def process_with_ai(recursive=True):
 
     </formato_resposta_esperado>
     """
+    )
     model = "gemini-2.5-flash"
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
     client = genai.Client()
     print("starting...")
-    response = client.models.generate_content(
-        model=model, contents=instructions
-    )
+    response = client.models.generate_content(model=model, contents=instructions)
     response = str(response.text)
     urls_manager.add_ai_log(instructions=instructions, response=response, model=model)
     print(response)
-    print('^^^^^^')
-    soup = BeautifulSoup(response, 'html.parser')
+    print("^^^^^^")
+    soup = BeautifulSoup(response, "html.parser")
     for vaga in soup.find_all("vaga"):
 
         url = urls_manager.get_url_by_id(vaga.find("id").text)
@@ -83,51 +90,56 @@ def process_with_ai(recursive=True):
             url = url.iloc[0]
 
         h1 = vaga.find("titulo").text
-        if vaga.find("contratante").text != 'desconhecido' and vaga.find("contratante").text != '':
+        if (
+            vaga.find("contratante").text != "desconhecido"
+            and vaga.find("contratante").text != ""
+        ):
             h1 = h1 + " - " + vaga.find("contratante").text
-        if url['description_links'] > 1 and vaga.find("id").text != "":
+        if url["description_links"] > 1 and vaga.find("id").text != "":
             urls_manager.set_url_h1(vaga.find("url").text, h1)
             urls_manager.set_url_ai_processed_by_url(vaga.find("url").text)
-            #urls_manager.touch_url(vaga.find("url").text)
-            print('-- child updated -- ' , vaga.find("url").text , h1)
-        elif url['description_links'] <= 1:
+            # urls_manager.touch_url(vaga.find("url").text)
+            print("-- child updated -- ", vaga.find("url").text, h1)
+        elif url["description_links"] <= 1:
             urls_manager.set_url_h1_by_id(vaga.find("id").text, h1)
             urls_manager.set_url_ai_processed_by_id(vaga.find("id").text)
-            print('-- parent updated -- ' , url['url'] , h1)
+            print("-- parent updated -- ", url["url"], h1)
         else:
-            print('-- not updated -- ' , url['url'] , h1)
+            print("-- not updated -- ", url["url"], h1)
 
-    print('ending...')
+    print("ending...")
 
     if recursive:
         wait = random.randint(1, 3)
-        print('sleeping for', wait, 'seconds before next round')
+        print("sleeping for", wait, "seconds before next round")
         time.sleep(wait)
         process_with_ai(recursive=recursive)
 
     return
 
-#TODO: Separate gemini from basic function
-def _process_with_gemini(model,instructions):
+
+# TODO: Separate gemini from basic function
+def _process_with_gemini(model, instructions):
     response = """"""
     return response
 
-def _process_with_openai(model,instructions):
-    #import os
-    #from openai import OpenAI
 
-    #client = OpenAI(
+def _process_with_openai(model, instructions):
+    # import os
+    # from openai import OpenAI
+
+    # client = OpenAI(
     #    # This is the default and can be omitted
     #    api_key=os.environ.get("OPENAI_API_KEY"),
-    #)
+    # )
 
-    #response = client.responses.create(
+    # response = client.responses.create(
     #    model="gpt-4o",
     #    instructions="You are a coding assistant that talks like a pirate.",
     #    input="How do I check if a Python object is an instance of a class?",
-    #)
+    # )
 
-    #print(response.output_text)
+    # print(response.output_text)
 
     response = """"""
     return response
