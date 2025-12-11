@@ -1,42 +1,34 @@
+RUNNER=uv run main.py
+.PHONY: clean, ai, start
+
 clean:
 	rm db/local.db
 
-load:
-	uv run main.py load-txt
+load: db/local.db
+	$(RUNNER) load-txt
 
-full-start:
-	uv sync
-	uv run main.py load-txt
-	uv run main.py scrap-urls --recursive --ignore-type
+scrap-urls: db/local.db
+	$(RUNNER) scrap-urls --recursive --ignore-type
 
-start-only-parents:
-	uv run main.py load-txt
-	uv run main.py scrap-urls --recursive --ignore-type --only-parents
+scrap-urls-only-parents: db/local.db
+	$(RUNNER) scrap-urls --recursive --ignore-type --only-parents
 
-scrap-urls:
-	uv run main.py scrap-urls --recursive --ignore-type
-
-continue:
-	uv run main.py scrap-urls --recursive --ignore-type
-
-continue-only-parents:
-	uv run main.py scrap-urls --recursive --ignore-type --only-parents
-
-export:
-	uv run main.py export
-	uv run main.py export --file=output/urls-simplified.csv --simplify
-	uv run main.py report
+export: output/urls.csv output/urls-simplified.csv output/report.csv output/urls.csv-preview.html output/urls-simplified.csv-preview.html output/report.csv-preview.html
+	$(RUNNER) export
+	$(RUNNER) export --file=output/urls-simplified.csv --simplify
+	$(RUNNER) report
 
 ai:
-	python main.py process-with-ai
+	$(RUNNER) process-with-ai
 
-seed:
-	python main.py seed
+seed: db/local.db
+	$(RUNNER) seed
 
-merge_dbs:
-	python main.py merge_dbs
+merge_dbs: db/local.db
+	$(RUNNER) merge_dbs
 
 start:
+	uv sync
 	make load
 	make scrap-urls
 	make export

@@ -18,7 +18,7 @@ I recomend to use the [uv](https://docs.astral.sh/uv/getting-started/installatio
 uv sync
 ```
 
-## How to use
+## How to use and test (development only)
 
 OhMyScrapper works in 3 stages:
 
