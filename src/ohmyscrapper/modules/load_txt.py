@@ -1,8 +1,13 @@
+import os
 from urlextract import URLExtract
-import models.urls_manager as urls_manager
+import ohmyscrapper.models.urls_manager as urls_manager
 
 
 def load_txt(file_name="input/_chat.txt"):
+
+    if not os.path.exists("input"):
+        os.mkdir("input")
+
     urls_manager.create_tables()
     urls_manager.seeds()
     # make it recursive for all files

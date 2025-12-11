@@ -1,4 +1,4 @@
-RUNNER=uv run main.py
+RUNNER=uv run src/ohmyscrapper/__init__.py
 .PHONY: clean, ai, start
 
 clean:
@@ -32,3 +32,6 @@ start:
 	make load
 	make scrap-urls
 	make export
+
+build:
+	uv build

@@ -46,13 +46,13 @@ First we load a text file you would like to look for urls, the idea here is to
 use the whatsapp history, but it works with any txt file.
 
 The default file is `input/_chat.txt`. If you have the default file you just use
-the command `load-txt`:
+the command `load`:
 ```shell
 make load
 ```
 or, if you have another file, just use the argument `-file` like this:
 ```shell
-uv run main.py load-txt -file=my-text-file.txt
+uv run main.py load -file=my-text-file.txt
 ```
 That will create a database if it doesn't exist and store every url the oh-my-scrapper
 find. After that, let's scrap the urls with the command `scrap-urls`:

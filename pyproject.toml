@@ -3,6 +3,9 @@ name = "ohmyscrapper"
 version = "0.1.1"
 description = "This project aims to create a text-based scraper containing links to create a final PDF with general information about job openings."
 readme = "README.md"
+authors = [
+    { name = "Cesar Cardoso gh@bouli", email = "hello@cesarcardoso.cc" }
+]
 requires-python = ">=3.11"
 dependencies = [
     "beautifulsoup4>=4.14.3",
@@ -13,3 +16,10 @@ dependencies = [
     "rich>=14.2.0",
     "urlextract>=1.9.0",
 ]
+
+[project.scripts]
+ohmyscrapper = "ohmyscrapper:main"
+
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"

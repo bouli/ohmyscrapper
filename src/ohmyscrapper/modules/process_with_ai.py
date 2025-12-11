@@ -1,4 +1,4 @@
-import models.urls_manager as urls_manager
+import ohmyscrapper.models.urls_manager as urls_manager
 from bs4 import BeautifulSoup
 from google import genai
 from dotenv import load_dotenv

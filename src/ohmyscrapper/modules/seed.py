@@ -1,4 +1,4 @@
-import models.urls_manager as urls_manager
+import ohmyscrapper.models.urls_manager as urls_manager
 
 
 def seed():

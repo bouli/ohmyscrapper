@@ -1,24 +1,25 @@
 import argparse
-from modules.classify_urls import classify_urls
-from modules.sniff_url import sniff_url
-from modules.load_txt import load_txt
-from modules.seed import seed
-from modules.scrap_urls import scrap_urls
-from modules.show import (
+
+from ohmyscrapper.modules.classify_urls import classify_urls
+from ohmyscrapper.modules.sniff_url import sniff_url
+from ohmyscrapper.modules.load_txt import load_txt
+from ohmyscrapper.modules.seed import seed
+from ohmyscrapper.modules.scrap_urls import scrap_urls
+from ohmyscrapper.modules.show import (
     show_url,
     show_urls,
     show_urls_valid_prefix,
     export_urls,
     export_report,
 )
-from modules.untouch_all import untouch_all
-from modules.process_with_ai import process_with_ai
-from modules.merge_dbs import merge_dbs
+from ohmyscrapper.modules.untouch_all import untouch_all
+from ohmyscrapper.modules.process_with_ai import process_with_ai
+from ohmyscrapper.modules.merge_dbs import merge_dbs
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="ohmyscraper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.1.0")
+    parser = argparse.ArgumentParser(prog="ohmyscrapper")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.1.1")
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -39,7 +40,7 @@ def main():
         "--recursive", default=False, help="Run in recursive mode", action="store_true"
     )
 
-    load_txt_parser = subparsers.add_parser("load-txt", help="Load txt file")
+    load_txt_parser = subparsers.add_parser("load", help="Load txt file")
     load_txt_parser.add_argument(
         "-file", default="input/_chat.txt", help="File path. Default is input/_chat.txt"
     )
@@ -98,7 +99,7 @@ def main():
         classify_urls(args.recursive)
         return
 
-    if args.command == "load-txt":
+    if args.command == "load":
         load_txt(args.file)
         return
 

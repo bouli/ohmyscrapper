@@ -1,7 +1,7 @@
-import models.urls_manager as urls_manager
-import modules.sniff_url as sniff_url
-import modules.load_txt as load_txt
-import modules.classify_urls as classify_urls
+import ohmyscrapper.models.urls_manager as urls_manager
+import ohmyscrapper.modules.sniff_url as sniff_url
+import ohmyscrapper.modules.load_txt as load_txt
+import ohmyscrapper.modules.classify_urls as classify_urls
 
 import time
 import random
