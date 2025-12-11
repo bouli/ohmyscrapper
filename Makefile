@@ -2,31 +2,30 @@ clean:
 	rm db/local.db
 
 load:
-	python3 main.py load-txt
+	uv run main.py load-txt
 
 full-start:
-	pip install -r requirements.txt
-	python3 main.py load-txt
-	python3 main.py scrap-urls --recursive --ignore-type
+	uv sync
+	uv run main.py load-txt
+	uv run main.py scrap-urls --recursive --ignore-type
 
 start-only-parents:
-	python3 main.py load-txt
-	python3 main.py scrap-urls --recursive --ignore-type --only-parents
+	uv run main.py load-txt
+	uv run main.py scrap-urls --recursive --ignore-type --only-parents
 
-start:
-	python3 main.py load-txt
-	python3 main.py scrap-urls --recursive --ignore-type
+scrap-urls:
+	uv run main.py scrap-urls --recursive --ignore-type
 
 continue:
-	python3 main.py scrap-urls --recursive --ignore-type
+	uv run main.py scrap-urls --recursive --ignore-type
 
 continue-only-parents:
-	python3 main.py scrap-urls --recursive --ignore-type --only-parents
+	uv run main.py scrap-urls --recursive --ignore-type --only-parents
 
 export:
-	python3 main.py export
-	python3 main.py export --file=output/urls-simplified.csv --simplify
-	python3 main.py report
+	uv run main.py export
+	uv run main.py export --file=output/urls-simplified.csv --simplify
+	uv run main.py report
 
 ai:
 	python main.py process-with-ai
@@ -36,3 +35,8 @@ seed:
 
 merge_dbs:
 	python main.py merge_dbs
+
+start:
+	make load
+	make scrap-urls
+	make export

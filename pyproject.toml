@@ -1,0 +1,15 @@
+[project]
+name = "ohmyscrapper"
+version = "0.1.1"
+description = "This project aims to create a text-based scraper containing links to create a final PDF with general information about job openings."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "google-genai>=1.55.0",
+    "pandas>=2.3.3",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+    "rich>=14.2.0",
+    "urlextract>=1.9.0",
+]
