@@ -7,3 +7,5 @@ output
 lab.
 .DS_Store
 .python-version
+templates
+prompts

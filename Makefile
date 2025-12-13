@@ -5,7 +5,7 @@ clean:
 	rm db/local.db
 
 load: db/local.db
-	$(RUNNER) load-txt
+	$(RUNNER) load
 
 scrap-urls: db/local.db
 	$(RUNNER) scrap-urls --recursive --ignore-type
