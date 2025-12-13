@@ -28,7 +28,7 @@ def create_tables():
 
     c = conn.cursor()
     c.execute(
-        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER DEFAULT 0, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
+        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER DEFAULT 0, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, json_ai TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
     )
     c.execute(
         "CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, created_at DATETIME)"
@@ -121,13 +121,16 @@ def get_urls_report():
         u.id,
         u.url_type,
         u.url,
-        u.h1,
+        COALESCE(u.h1, p.h1) as h1,
         p.id as parent_id,
         p.h1 as parent_h1
         FROM urls u
         LEFT JOIN parents p
             ON u.parent_id = p.id
-        WHERE u.history = 0 AND u.id NOT IN (SELECT id FROM parents)
+        WHERE
+            u.history = 0
+            AND u.id NOT IN (SELECT id FROM parents)
+        ORDER BY url_type DESC
     """
     df = pd.read_sql_query(sql, conn)
 
@@ -201,6 +204,9 @@ def add_ai_log(instructions, response, model):
     )
     conn.commit()
 
+def get_ai_log():
+    df = pd.read_sql_query(f"SELECT * FROM ai_log", conn)
+    return df
 
 def set_url_destiny(url, destiny):
     url = clean_url(url)
@@ -232,20 +238,20 @@ def set_url_h1_by_id(id, value):
     conn.commit()
 
 
-def set_url_ai_processed_by_id(id):
+def set_url_ai_processed_by_id(id, json_str):
     value = 1
     value = str(value).strip()
     c = conn.cursor()
-    c.execute("UPDATE urls SET ai_processed = ? WHERE id = ?", (value, id))
+    c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE id = ?", (value, json_str, id))
     conn.commit()
 
 
-def set_url_ai_processed_by_url(url):
+def set_url_ai_processed_by_url(url, json_str):
     value = 1
     value = str(value).strip()
     url = clean_url(url)
     c = conn.cursor()
-    c.execute("UPDATE urls SET ai_processed = ? WHERE url = ?", (value, url))
+    c.execute("UPDATE urls SET ai_processed = ?, json_ai = ? WHERE url = ?", (value, json_str, url))
     conn.commit()
 
 

@@ -12,6 +12,7 @@ dependencies = [
     "google-genai>=1.55.0",
     "pandas>=2.3.3",
     "python-dotenv>=1.2.1",
+    "pyyaml>=6.0.3",
     "requests>=2.32.5",
     "rich>=14.2.0",
     "urlextract>=1.9.0",
