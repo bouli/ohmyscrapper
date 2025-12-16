@@ -1,4 +1,4 @@
-# OhMyScrapper - v0.2.0
+# OhMyScrapper - v0.2.1
 
 This project aims to create a text-based scraper containing links to create a
 final PDF with general information about job openings.
