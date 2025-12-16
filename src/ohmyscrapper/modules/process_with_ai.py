@@ -59,17 +59,19 @@ def _xml_children_to_dict(xml):
         item_dict[item.name] = item.text
     return item_dict
 
-def process_with_ai(recursive=True):
+def process_with_ai(recursive=True, triggered_times=0):
+    triggered_times = triggered_times + 1
+
     prompt = _get_prompt()
     if not prompt:
         return
 
     url_type = "linkedin_post"
     df = urls_manager.get_urls_by_url_type_for_ai_process(url_type)
-
     if len(df) == 0:
         print("no urls to process with ai anymore")
         return
+
     texts = ""
     for index, row in df.iterrows():
         texts = (
@@ -105,7 +107,15 @@ def process_with_ai(recursive=True):
         wait = random.randint(1, 3)
         print("sleeping for", wait, "seconds before next round")
         time.sleep(wait)
-        process_with_ai(recursive=recursive)
+
+        if triggered_times > 5:
+            print("!!! This is a break to prevent budget accident$.")
+            print("You triggered", triggered_times, "times the AI processing function.")
+            print("If you are sure this is correct, you can re-call this function again.")
+            print("Please, check it.")
+            return
+
+        process_with_ai(recursive=recursive, triggered_times=triggered_times)
 
     return
 
