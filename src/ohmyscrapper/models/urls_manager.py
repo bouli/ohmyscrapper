@@ -245,6 +245,12 @@ def set_url_ai_processed_by_id(id, json_str):
     c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE id = ?", (value, json_str, id))
     conn.commit()
 
+def set_url_empty_ai_processed_by_id(id, json_str="empty result"):
+    value = 1
+    value = str(value).strip()
+    c = conn.cursor()
+    c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE ai_processed = 0 AND id = ?", (value, json_str, id))
+    conn.commit()
 
 def set_url_ai_processed_by_url(url, json_str):
     value = 1

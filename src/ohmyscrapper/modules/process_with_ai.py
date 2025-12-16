@@ -103,6 +103,9 @@ def process_with_ai(recursive=True, triggered_times=0):
     process_ai_response(response=response)
     print("ending...")
 
+    for index, row in df.iterrows():
+        urls_manager.set_url_empty_ai_processed_by_id(row["id"])
+
     if recursive:
         wait = random.randint(1, 3)
         print("sleeping for", wait, "seconds before next round")

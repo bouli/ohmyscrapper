@@ -30,6 +30,7 @@ def export_report(csv_file="output/report.csv"):
     df = urls_manager.get_urls_report()
 
     df.to_csv(csv_file, index=False)
+    _clear_file(csv_file)
     print("--------------------")
     print("Urls report exported to", csv_file)
 
@@ -41,9 +42,19 @@ def export_report(csv_file="output/report.csv"):
         inplace=True,
     )
     df.to_html(csv_file + "-preview.html", index=False)
+    _clear_file(csv_file + "-preview.html")
+
     print("Urls report preview exported to", csv_file + "-preview.html")
     print("--------------------")
 
+# TODO: Add transformation layer
+def _clear_file(txt_tile):
+    with open(txt_tile, "r") as f:
+        content = f.read()
+        content = content.replace(" -  -", " -")
+        content = content.replace(" -<", "<")
+        with open(txt_tile, "w") as f:
+            f.write(content)
 
 def show_urls(limit=0, jump_to_page=0):
     df = urls_manager.get_urls(limit=limit)
