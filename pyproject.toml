@@ -36,4 +36,7 @@ commit = true
 filename = "pyproject.toml"
 
 [[tool.bumpversion.files]]
+filename = "README.md"
+
+[[tool.bumpversion.files]]
 filename = "src/ohmyscrapper/__init__.py"
