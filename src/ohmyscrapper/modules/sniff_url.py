@@ -85,4 +85,4 @@ def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=Fal
 
 
 def get_tags(url):
-    return sniff_url(url, silent=True)
+    return sniff_url(url=url, silent=True)

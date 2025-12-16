@@ -13,7 +13,7 @@ from ohmyscrapper.modules.show import (
     export_report,
 )
 from ohmyscrapper.modules.untouch_all import untouch_all
-from ohmyscrapper.modules.process_with_ai import process_with_ai
+from ohmyscrapper.modules.process_with_ai import process_with_ai, reprocess_ai_history
 from ohmyscrapper.modules.merge_dbs import merge_dbs
 
 
@@ -26,6 +26,10 @@ def main():
     ai_process_parser = subparsers.add_parser(
         "process-with-ai", help="Process with AI."
     )
+    ai_process_parser.add_argument(
+        "--history", default=False, help="Reprocess ai history", action="store_true"
+    )
+
     seed_parser = subparsers.add_parser(
         "seed", help="Seed database. Necessary to classify urls."
     )
@@ -139,7 +143,10 @@ def main():
         return
 
     if args.command == "process-with-ai":
-        process_with_ai()
+        if args.history:
+            reprocess_ai_history()
+        else:
+            process_with_ai()
         return
 
     if args.command == "report":

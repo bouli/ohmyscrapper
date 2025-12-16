@@ -5,7 +5,7 @@ from rich.table import Table
 
 
 def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):
-    df = urls_manager.get_urls(limit)
+    df = urls_manager.get_urls(limit=limit)
 
     if simplify:
         df.drop(columns=["description", "json"], inplace=True)
@@ -46,7 +46,7 @@ def export_report(csv_file="output/report.csv"):
 
 
 def show_urls(limit=0, jump_to_page=0):
-    df = urls_manager.get_urls(limit)
+    df = urls_manager.get_urls(limit=limit)
     df.drop(columns=["json", "description"], inplace=True)
     # df = df.head(n=20)
 
@@ -107,10 +107,10 @@ def show_table(df):
 
 
 def show_urls_valid_prefix(limit=0):
-    print(urls_manager.get_urls_valid_prefix(limit))
+    print(urls_manager.get_urls_valid_prefix(limit=limit))
     return
 
 
 def show_url(url):
-    print(urls_manager.get_url_by_url(url).T)
+    print(urls_manager.get_url_by_url(url=url).T)
     return

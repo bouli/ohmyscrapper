@@ -4,16 +4,16 @@ RUNNER=uv run src/ohmyscrapper/__init__.py
 clean:
 	rm db/local.db
 
-load: db/local.db
+load:
 	$(RUNNER) load
 
-scrap-urls: db/local.db
+scrap-urls:
 	$(RUNNER) scrap-urls --recursive --ignore-type
 
-scrap-urls-only-parents: db/local.db
+scrap-urls-only-parents:
 	$(RUNNER) scrap-urls --recursive --ignore-type --only-parents
 
-export: output/urls.csv output/urls-simplified.csv output/report.csv output/urls.csv-preview.html output/urls-simplified.csv-preview.html output/report.csv-preview.html
+export:
 	$(RUNNER) export
 	$(RUNNER) export --file=output/urls-simplified.csv --simplify
 	$(RUNNER) report
@@ -21,16 +21,17 @@ export: output/urls.csv output/urls-simplified.csv output/report.csv output/urls
 ai:
 	$(RUNNER) process-with-ai
 
-seed: db/local.db
+seed:
 	$(RUNNER) seed
 
-merge_dbs: db/local.db
+merge_dbs:
 	$(RUNNER) merge_dbs
 
 start:
 	uv sync
 	make load
 	make scrap-urls
+	make ai
 	make export
 
 build:

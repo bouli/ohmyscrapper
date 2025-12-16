@@ -6,9 +6,58 @@ import random
 import time
 import os
 import yaml
-
+import json
+# TODO: !!! REFACTOR !!!
 load_dotenv()
 
+def reprocess_ai_history():
+    df = urls_manager.get_ai_log().to_dict(orient="records")
+    for row in df:
+        process_ai_response(row["response"])
+
+
+def process_ai_response(response):
+        job_positions = xml2dict(response)
+
+        for index, xml_item_children in job_positions.items():
+            for url_child_xml in xml_item_children:
+
+                url_parent = urls_manager.get_url_by_id(url_child_xml["id"])
+                if len(url_parent) > 0:
+                    url_parent = url_parent.iloc[0]
+                h1 = url_child_xml.copy()
+                del h1["id"]
+                del h1["url"]
+                h1 = " - ".join(h1.values())
+                if url_parent["description_links"] > 1 and url_child_xml["id"] != "":
+                    print("-- child updated -- \n", url_child_xml["url"] , ":", h1)
+                    urls_manager.set_url_h1(url_child_xml["url"], h1)
+                    urls_manager.set_url_ai_processed_by_url(url_child_xml["url"], str(json.dumps(url_child_xml)))
+                    if url_parent["url"] != url_child_xml["url"]:
+                        urls_manager.set_url_ai_processed_by_url(url_parent["url"], "children-update")
+                else:
+                    print("-- parent updated -- \n", url_parent["url"], ":", h1)
+                    urls_manager.set_url_h1(url_parent["url"], h1)
+                    urls_manager.set_url_ai_processed_by_url(url_parent["url"], str(json.dumps(url_child_xml)))
+
+
+def xml2dict(xml_string):
+    soup = BeautifulSoup(xml_string, "html.parser")
+
+    children_items_dict = {}
+    for item in soup.find_all():
+        if(item.parent.name == "[document]"):
+            children_items_dict[item.name] = []
+        elif item.parent.name in children_items_dict:
+            children_items_dict[item.parent.name].append(_xml_children_to_dict(item))
+
+    return children_items_dict
+
+def _xml_children_to_dict(xml):
+    item_dict = {}
+    for item in xml.find_all():
+        item_dict[item.name] = item.text
+    return item_dict
 
 def process_with_ai(recursive=True):
     prompt = _get_prompt()
@@ -26,10 +75,10 @@ def process_with_ai(recursive=True):
         texts = (
             texts
             + f"""
-        <texto>
+        <text>
         <id>{str(row['id'])}</id>
         {row['description']}
-        </texto>
+        </text>
         """
         )
     if texts == "":
@@ -40,40 +89,16 @@ def process_with_ai(recursive=True):
     print("prompt:", prompt["name"])
     print("model:", prompt["model"])
     print("description:", prompt["description"])
-    prompt["instrusctions"] = prompt["instrusctions"].replace("{ohmyscrapper_texts}", texts)
+    prompt["instructions"] = prompt["instructions"].replace("{ohmyscrapper_texts}", texts)
 
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
     client = genai.Client()
-    response = client.models.generate_content(model=prompt["model"], contents=prompt["instrusctions"])
+    response = client.models.generate_content(model=prompt["model"], contents=prompt["instructions"])
     response = str(response.text)
-    urls_manager.add_ai_log(instructions=prompt["instrusctions"], response=response, model=prompt["model"])
+    urls_manager.add_ai_log(instructions=prompt["instructions"], response=response, model=prompt["model"], prompt_name=prompt["name"], prompt_file=prompt["prompt_file"])
     print(response)
     print("^^^^^^")
-    soup = BeautifulSoup(response, "html.parser")
-    for vaga in soup.find_all(prompt["xml-item"]):
-
-        url = urls_manager.get_url_by_id(vaga.find("id").text)
-        if len(url) > 0:
-            url = url.iloc[0]
-        # TODO: make it dynamic
-        h1 = vaga.find("titulo").text
-        if (
-            vaga.find("contratante").text != "desconhecido"
-            and vaga.find("contratante").text != ""
-        ):
-            h1 = h1 + " - " + vaga.find("contratante").text
-        if url["description_links"] > 1 and vaga.find("id").text != "":
-            urls_manager.set_url_h1(vaga.find("url").text, h1)
-            urls_manager.set_url_ai_processed_by_url(vaga.find("url").text)
-
-            print("-- child updated -- ", vaga.find("url").text, h1)
-        elif url["description_links"] <= 1:
-            urls_manager.set_url_h1_by_id(vaga.find("id").text, h1)
-            urls_manager.set_url_ai_processed_by_id(vaga.find("id").text)
-            print("-- parent updated -- ", url["url"], h1)
-        else:
-            print("-- not updated -- ", url["url"], h1)
-
+    process_ai_response(response=response)
     print("ending...")
 
     if recursive:
@@ -90,7 +115,6 @@ def _get_prompt():
 model: "gemini-2.5-flash"
 name: "default-prompt"
 description: "Put here your prompt description."
-xml-item: "position"
 ---
 Process with AI this prompt: {ohmyscrapper_texts}
 """
@@ -106,14 +130,14 @@ Process with AI this prompt: {ohmyscrapper_texts}
         open(f"{prompts_path}/prompt.md", "w").write(default_prompt)
         print(f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there.")
         return False
-
+    prompt = {}
     if len(prompt_files) == 1:
-        prompt = _parse_prompt(prompts_path, prompt_files[0])
+        prompt = _parse_prompt(prompts_path=prompts_path, prompt_file=prompt_files[0])
     else:
         print("Choose a prompt:")
         prompts = {}
         for index, file in enumerate(prompt_files):
-            prompts[index] = _parse_prompt(prompts_path, file)
+            prompts[index] = _parse_prompt(prompts_path=prompts_path, prompt_file=file)
             print(index, ":", prompts[index]['name'])
         input_prompt = input("Type the number of the prompt you want to use or 'q' to quit: ")
         if input_prompt == "q":
@@ -123,14 +147,14 @@ Process with AI this prompt: {ohmyscrapper_texts}
         except:
             print("! Invalid prompt\n")
             prompt = _get_prompt()
-
     return prompt
 
 def _parse_prompt(prompts_path, prompt_file):
     prompt = {}
     raw_prompt = open(f"{prompts_path}/{prompt_file}", "r").read().split("---")
     prompt = yaml.safe_load(raw_prompt[1])
-    prompt["instrusctions"] = raw_prompt[2].strip()
+    prompt["instructions"] = raw_prompt[2].strip()
+    prompt["prompt_file"] = prompt_file
 
     return prompt
 # TODO: Separate gemini from basic function
