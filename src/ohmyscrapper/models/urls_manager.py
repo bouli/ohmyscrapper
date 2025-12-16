@@ -28,10 +28,10 @@ def create_tables():
 
     c = conn.cursor()
     c.execute(
-        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_id INTEGER DEFAULT 0, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, json_ai TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
+        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_url TEXT, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, json_ai TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
     )
     c.execute(
-        "CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, created_at DATETIME)"
+        "CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, prompt_file STRING, prompt_name STRING, created_at DATETIME)"
     )
 
     c.execute(
@@ -106,30 +106,31 @@ def get_urls(limit=0):
 
 def get_urls_report():
     sql = """
-    WITH parents_id AS (
-        SELECT parent_id FROM urls WHERE parent_id != 0 GROUP BY parent_id
+    WITH parent_url AS (
+        SELECT parent_url FROM urls WHERE parent_url IS NOT NULL AND parent_url != '' GROUP BY parent_url
     ),
     parents AS (
         SELECT
             u.id,
+            u.url,
             u.h1
             FROM urls u
-                INNER JOIN parents_id p
-                    ON u.id = p.parent_id
+                INNER JOIN parent_url p
+                    ON u.url = p.parent_url
     )
     SELECT
         u.id,
         u.url_type,
         u.url,
         COALESCE(u.h1, p.h1) as h1,
-        p.id as parent_id,
+        p.url as parent_url,
         p.h1 as parent_h1
         FROM urls u
         LEFT JOIN parents p
-            ON u.parent_id = p.id
+            ON u.parent_url = p.url
         WHERE
             u.history = 0
-            AND u.id NOT IN (SELECT id FROM parents)
+            AND u.url NOT IN (SELECT url FROM parents)
         ORDER BY url_type DESC
     """
     df = pd.read_sql_query(sql, conn)
@@ -173,34 +174,34 @@ def get_url_like_unclassified(like_condition):
     return df
 
 
-def add_url(url, h1=None, parent_id=0):
+def add_url(url, h1=None, parent_url=None):
     url = clean_url(url)
     c = conn.cursor()
 
     if h1 is not None:
         h1 = h1.strip()
 
-    if parent_id is None:
-        parent_id = 0
+    if parent_url is None:
+        parent_url = None
 
-    parent_id = int(parent_id)
+    parent_url = str(parent_url)
 
     if len(get_url_by_url(url)) == 0:
         c.execute(
-            "INSERT INTO urls (url, h1, parent_id, created_at, ai_processed, description_links, history) VALUES (?, ?, ?, ?, 0, 0, 0)",
-            (url, h1, parent_id, int(time.time())),
+            "INSERT INTO urls (url, h1, parent_url, created_at, ai_processed, description_links, history) VALUES (?, ?, ?, ?, 0, 0, 0)",
+            (url, h1, parent_url, int(time.time())),
         )
         conn.commit()
 
     return get_url_by_url(url)
 
 
-def add_ai_log(instructions, response, model):
+def add_ai_log(instructions, response, model, prompt_file, prompt_name):
     c = conn.cursor()
 
     c.execute(
-        "INSERT INTO ai_log (instructions, response, model, created_at) VALUES (?, ?, ?, ?)",
-        (instructions, response, model, int(time.time())),
+        "INSERT INTO ai_log (instructions, response, model, prompt_file, prompt_name, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (instructions, response, model, prompt_file, prompt_name, int(time.time())),
     )
     conn.commit()
 
@@ -212,11 +213,10 @@ def set_url_destiny(url, destiny):
     url = clean_url(url)
     destiny = clean_url(destiny)
     c = conn.cursor()
-    url_obj = get_url_by_url(url)
     c.execute("UPDATE urls SET url_destiny = ? WHERE url = ?", (destiny, url))
     c.execute(
-        "UPDATE urls SET parent_id = ? WHERE url = ?",
-        (int(url_obj.iloc[0]["id"]), destiny),
+        "UPDATE urls SET parent_url = ? WHERE url = ?",
+        (str(url), destiny),
     )
 
     conn.commit()
@@ -314,7 +314,7 @@ def get_untouched_urls(
         where_sql += " AND url_type IS NOT NULL "
 
     if only_parents:
-        where_sql += " AND parent_id = 0 "
+        where_sql += " AND (parent_url = '' OR parent_url IS NULL) "
 
     if randomize:
         random_sql = " RANDOM() "

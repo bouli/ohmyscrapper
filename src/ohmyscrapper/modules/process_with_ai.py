@@ -33,6 +33,8 @@ def process_ai_response(response):
                     print("-- child updated -- \n", url_child_xml["url"] , ":", h1)
                     urls_manager.set_url_h1(url_child_xml["url"], h1)
                     urls_manager.set_url_ai_processed_by_url(url_child_xml["url"], str(json.dumps(url_child_xml)))
+                    if url_parent["url"] != url_child_xml["url"]:
+                        urls_manager.set_url_ai_processed_by_url(url_parent["url"], "children-update")
                 else:
                     print("-- parent updated -- \n", url_parent["url"], ":", h1)
                     urls_manager.set_url_h1(url_parent["url"], h1)
@@ -87,16 +89,16 @@ def process_with_ai(recursive=True):
     print("prompt:", prompt["name"])
     print("model:", prompt["model"])
     print("description:", prompt["description"])
-    prompt["instrusctions"] = prompt["instrusctions"].replace("{ohmyscrapper_texts}", texts)
+    prompt["instructions"] = prompt["instructions"].replace("{ohmyscrapper_texts}", texts)
 
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
     client = genai.Client()
-    response = client.models.generate_content(model=prompt["model"], contents=prompt["instrusctions"])
+    response = client.models.generate_content(model=prompt["model"], contents=prompt["instructions"])
     response = str(response.text)
-    urls_manager.add_ai_log(instructions=prompt["instrusctions"], response=response, model=prompt["model"])
+    urls_manager.add_ai_log(instructions=prompt["instructions"], response=response, model=prompt["model"], prompt_name=prompt["name"], prompt_file=prompt["prompt_file"])
     print(response)
     print("^^^^^^")
-    process_ai_response(response)
+    process_ai_response(response=response)
     print("ending...")
 
     if recursive:
@@ -128,14 +130,14 @@ Process with AI this prompt: {ohmyscrapper_texts}
         open(f"{prompts_path}/prompt.md", "w").write(default_prompt)
         print(f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there.")
         return False
-
+    prompt = {}
     if len(prompt_files) == 1:
-        prompt = _parse_prompt(prompts_path, prompt_files[0])
+        prompt = _parse_prompt(prompts_path=prompts_path, prompt_file=prompt_files[0])
     else:
         print("Choose a prompt:")
         prompts = {}
         for index, file in enumerate(prompt_files):
-            prompts[index] = _parse_prompt(prompts_path, file)
+            prompts[index] = _parse_prompt(prompts_path=prompts_path, prompt_file=file)
             print(index, ":", prompts[index]['name'])
         input_prompt = input("Type the number of the prompt you want to use or 'q' to quit: ")
         if input_prompt == "q":
@@ -145,14 +147,14 @@ Process with AI this prompt: {ohmyscrapper_texts}
         except:
             print("! Invalid prompt\n")
             prompt = _get_prompt()
-
     return prompt
 
 def _parse_prompt(prompts_path, prompt_file):
     prompt = {}
     raw_prompt = open(f"{prompts_path}/{prompt_file}", "r").read().split("---")
     prompt = yaml.safe_load(raw_prompt[1])
-    prompt["instrusctions"] = raw_prompt[2].strip()
+    prompt["instructions"] = raw_prompt[2].strip()
+    prompt["prompt_file"] = prompt_file
 
     return prompt
 # TODO: Separate gemini from basic function
