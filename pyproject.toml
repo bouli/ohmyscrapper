@@ -25,3 +25,15 @@ ohmyscrapper = "ohmyscrapper:main"
 [build-system]
 requires = ["uv_build>=0.9.17,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.bumpversion]
+tag = true
+tag_name = "v{new_version}"
+pre_commit_hooks = ["uv sync --upgrade", "git add uv.lock"]
+commit = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
+filename = "src/ohmyscrapper/__init__.py"
