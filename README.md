@@ -3,8 +3,6 @@
 This project aims to create a text-based scraper containing links to create a
 final PDF with general information about job openings.
 
-> This project is using [uv](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer) by default.
-
 ## Scope
 
 - Read texts;
