@@ -19,11 +19,14 @@ def get_db_path():
 def get_db_connection():
     return sqlite3.connect(get_db_path())
 
+def use_connection(func):
+    def provide_connection(*args, **kwargs):
+        global conn
+        conn = get_db_connection()
+        return func(*args, **kwargs)
+    return provide_connection
 
-# TODO: check if it makes sense
-conn = get_db_connection()
-
-
+@use_connection
 def create_tables():
 
     c = conn.cursor()
@@ -41,7 +44,6 @@ def create_tables():
     return pd.read_sql_query("SELECT * FROM urls LIMIT 100", conn)
 
 
-# TODO: not sure this should be something. depends on the project
 def seeds():
     create_tables()
 
@@ -51,14 +53,11 @@ def seeds():
     add_urls_valid_prefix("https://%.linkedin.com/feed/%", "linkedin_feed")
     add_urls_valid_prefix("https://%.linkedin.com/company/%", "linkedin_company")
 
-    # add_urls_valid_prefix("%.pdf", "pdf")
-    # add_url('https://imazon.org.br/categorias/artigos-cientificos/')
-
     return True
 
 
+@use_connection
 def add_urls_valid_prefix(url_prefix, url_type):
-    conn = get_db_connection()
 
     df = pd.read_sql_query(
         f"SELECT * FROM urls_valid_prefix WHERE url_prefix = '{url_prefix}'", conn
@@ -72,6 +71,7 @@ def add_urls_valid_prefix(url_prefix, url_type):
         conn.commit()
 
 
+@use_connection
 def get_urls_valid_prefix_by_type(url_type):
     df = pd.read_sql_query(
         f"SELECT * FROM urls_valid_prefix WHERE url_type = '{url_type}'", conn
@@ -79,12 +79,14 @@ def get_urls_valid_prefix_by_type(url_type):
     return df
 
 
+@use_connection
 def get_urls_valid_prefix_by_id(id):
     df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix WHERE id = '{id}'", conn)
     return df
 
 
 # TODO: pagination required
+@use_connection
 def get_urls_valid_prefix(limit=0):
     if limit > 0:
         df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix LIMIT {limit}", conn)
@@ -94,6 +96,7 @@ def get_urls_valid_prefix(limit=0):
 
 
 # TODO: pagination required
+@use_connection
 def get_urls(limit=0):
     if limit > 0:
         df = pd.read_sql_query(
@@ -104,6 +107,7 @@ def get_urls(limit=0):
     return df
 
 
+@use_connection
 def get_urls_report():
     sql = """
     WITH parent_url AS (
@@ -138,6 +142,7 @@ def get_urls_report():
     return df
 
 
+@use_connection
 def get_url_by_url(url):
     url = clean_url(url)
     df = pd.read_sql_query(f"SELECT * FROM urls WHERE url = '{url}'", conn)
@@ -145,12 +150,14 @@ def get_url_by_url(url):
     return df
 
 
+@use_connection
 def get_url_by_id(id):
     df = pd.read_sql_query(f"SELECT * FROM urls WHERE id = '{id}'", conn)
 
     return df
 
 
+@use_connection
 def get_urls_by_url_type(url_type):
     df = pd.read_sql_query(
         f"SELECT * FROM urls WHERE history = 0 AND url_type = '{url_type}'", conn
@@ -158,6 +165,7 @@ def get_urls_by_url_type(url_type):
     return df
 
 
+@use_connection
 def get_urls_by_url_type_for_ai_process(url_type="linkedin_post", limit=10):
     df = pd.read_sql_query(
         f"SELECT * FROM urls WHERE history = 0 AND url_type = '{url_type}' AND ai_processed = 0 LIMIT {limit}",
@@ -166,6 +174,7 @@ def get_urls_by_url_type_for_ai_process(url_type="linkedin_post", limit=10):
     return df
 
 
+@use_connection
 def get_url_like_unclassified(like_condition):
     df = pd.read_sql_query(
         f"SELECT * FROM urls WHERE history = 0 AND url LIKE '{like_condition}' AND url_type IS NULL",
@@ -174,6 +183,7 @@ def get_url_like_unclassified(like_condition):
     return df
 
 
+@use_connection
 def add_url(url, h1=None, parent_url=None):
     url = clean_url(url)
     c = conn.cursor()
@@ -196,6 +206,7 @@ def add_url(url, h1=None, parent_url=None):
     return get_url_by_url(url)
 
 
+@use_connection
 def add_ai_log(instructions, response, model, prompt_file, prompt_name):
     c = conn.cursor()
 
@@ -205,10 +216,12 @@ def add_ai_log(instructions, response, model, prompt_file, prompt_name):
     )
     conn.commit()
 
+@use_connection
 def get_ai_log():
     df = pd.read_sql_query(f"SELECT * FROM ai_log", conn)
     return df
 
+@use_connection
 def set_url_destiny(url, destiny):
     url = clean_url(url)
     destiny = clean_url(destiny)
@@ -222,6 +235,7 @@ def set_url_destiny(url, destiny):
     conn.commit()
 
 
+@use_connection
 def set_url_h1(url, value):
     value = str(value).strip()
     url = clean_url(url)
@@ -230,6 +244,7 @@ def set_url_h1(url, value):
     conn.commit()
 
 
+@use_connection
 def set_url_h1_by_id(id, value):
     value = str(value).strip()
 
@@ -238,6 +253,7 @@ def set_url_h1_by_id(id, value):
     conn.commit()
 
 
+@use_connection
 def set_url_ai_processed_by_id(id, json_str):
     value = 1
     value = str(value).strip()
@@ -245,6 +261,7 @@ def set_url_ai_processed_by_id(id, json_str):
     c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE id = ?", (value, json_str, id))
     conn.commit()
 
+@use_connection
 def set_url_empty_ai_processed_by_id(id, json_str="empty result"):
     value = 1
     value = str(value).strip()
@@ -252,6 +269,7 @@ def set_url_empty_ai_processed_by_id(id, json_str="empty result"):
     c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE ai_processed = 0 AND id = ?", (value, json_str, id))
     conn.commit()
 
+@use_connection
 def set_url_ai_processed_by_url(url, json_str):
     value = 1
     value = str(value).strip()
@@ -261,6 +279,7 @@ def set_url_ai_processed_by_url(url, json_str):
     conn.commit()
 
 
+@use_connection
 def set_url_description(url, value):
     url = clean_url(url)
     c = conn.cursor()
@@ -268,6 +287,7 @@ def set_url_description(url, value):
     conn.commit()
 
 
+@use_connection
 def set_url_description_links(url, value):
     url = clean_url(url)
     c = conn.cursor()
@@ -275,6 +295,7 @@ def set_url_description_links(url, value):
     conn.commit()
 
 
+@use_connection
 def set_url_json(url, value):
     url = clean_url(url)
     c = conn.cursor()
@@ -282,6 +303,7 @@ def set_url_json(url, value):
     conn.commit()
 
 
+@use_connection
 def set_url_error(url, value):
     url = clean_url(url)
     c = conn.cursor()
@@ -289,6 +311,7 @@ def set_url_error(url, value):
     conn.commit()
 
 
+@use_connection
 def set_url_type_by_id(url_id, url_type):
     c = conn.cursor()
     c.execute(f"UPDATE urls SET url_type = '{url_type}' WHERE id = {url_id}")
@@ -312,6 +335,7 @@ def clean_url(url):
     return url
 
 
+@use_connection
 def get_untouched_urls(
     limit=10, randomize=True, ignore_valid_prefix=False, only_parents=True
 ):
@@ -331,6 +355,7 @@ def get_untouched_urls(
     return df
 
 
+@use_connection
 def touch_url(url):
     url = clean_url(url)
     c = conn.cursor()
@@ -338,6 +363,7 @@ def touch_url(url):
     conn.commit()
 
 
+@use_connection
 def untouch_url(url):
     url = clean_url(url)
     c = conn.cursor()
@@ -345,12 +371,14 @@ def untouch_url(url):
     conn.commit()
 
 
+@use_connection
 def untouch_all_urls():
     c = conn.cursor()
     c.execute("UPDATE urls SET last_touch = NULL WHERE history = 0")
     conn.commit()
 
 
+@use_connection
 def set_all_urls_as_history():
     c = conn.cursor()
     c.execute("UPDATE urls SET history = 1")
@@ -382,9 +410,9 @@ def merge_dbs() -> None:
                 row["description"],
                 row["json"],
             )
-        # ßmerge_url(df)
 
 
+@use_connection
 def merge_url(url, h1, last_touch, created_at, description, json):
     url = clean_url(url)
     c = conn.cursor()
