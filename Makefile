@@ -19,7 +19,7 @@ export:
 	$(RUNNER) report
 
 ai:
-	$(RUNNER) process-with-ai
+	$(RUNNER) ai
 
 seed:
 	$(RUNNER) seed

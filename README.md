@@ -13,10 +13,22 @@ final PDF with general information about job openings.
 
 ## Installation
 
+You can install directly in your `pip`:
+```shell
+pip install ohmyscrapper
+```
+
 I recomend to use the [uv](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer), so you can just use the command bellow and everything is installed:
 ```shell
-uv sync
+uv add ohmyscrapper
+uv run ohmyscrapper --version
 ```
+
+But you can use everything as a tool, for example:
+```shell
+uvx ohmyscrapper --version
+```
+
 
 ## How to use and test (development only)
 
@@ -28,7 +40,7 @@ OhMyScrapper works in 3 stages:
 
 You can do 3 stages with the command:
 ```shell
-make start
+ohmyscrapper start
 ```
 > Remember to add your text file in the folder `/input` with the name `_chat.txt`!
 
@@ -48,17 +60,17 @@ use the whatsapp history, but it works with any txt file.
 The default file is `input/_chat.txt`. If you have the default file you just use
 the command `load`:
 ```shell
-make load
+ohmyscrapper load
 ```
 or, if you have another file, just use the argument `-file` like this:
 ```shell
-uv run main.py load -file=my-text-file.txt
+ohmyscrapper load -file=my-text-file.txt
 ```
 That will create a database if it doesn't exist and store every url the oh-my-scrapper
 find. After that, let's scrap the urls with the command `scrap-urls`:
 
 ```shell
-make scrap-urls
+ohmyscrapper scrap-urls --recursive --ignore-type
 ```
 
 That will scrap only the linkedin urls we are interested in. For now they are:
@@ -70,23 +82,33 @@ That will scrap only the linkedin urls we are interested in. For now they are:
 
 But we can use every other one generically using the argument `--ignore-type`:
 ```shell
-uv run main.py scrap-urls --ignore-type
+ohmyscrapper scrap-urls --ignore-type
 ```
 
 And we can ask to make it recursively adding the argument `--recursive`:
 ```shell
-uv run main.py scrap-urls --recursive
+ohmyscrapper scrap-urls --recursive
 ```
 > !!! important: we are not sure about blocks we can have for excess of requests
 
 And we can finally export with the command:
 ```shell
-make export
+ohmyscrapper export
+ohmyscrapper export --file=output/urls-simplified.csv --simplify
+ohmyscrapper report
 ```
 
 
 That's the basic usage!
 But you can understand more using the help:
 ```shell
-uv run main.py --help
+ohmyscrapper --help
 ```
+
+## See Also
+
+- Github: https://github.com/bouli/ohmyscrapper
+- PyPI: https://pypi.org/project/ohmyscrapper/
+
+## License
+This package is distributed under the [MIT license](https://opensource.org/license/MIT).

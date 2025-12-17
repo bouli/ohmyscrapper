@@ -4,7 +4,7 @@ version = "0.2.1"
 description = "This project aims to create a text-based scraper containing links to create a final PDF with general information about job openings."
 readme = "README.md"
 authors = [
-    { name = "Cesar Cardoso gh@bouli", email = "hello@cesarcardoso.cc" }
+    { name = "Cesar Cardoso", email = "hello@cesarcardoso.cc" }
 ]
 requires-python = ">=3.11"
 dependencies = [

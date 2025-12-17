@@ -22,9 +22,16 @@ def main():
     parser.add_argument("--version", action="version", version="%(prog)s v0.2.1")
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    start_parser = subparsers.add_parser(
+        "start", help="Make the entire process of loading, processing and exporting with the default configuration."
+    )
+
+    start_parser.add_argument(
+        "--ai", default=False, help="Make the entire process of loading, processing, reprocessing with AI and exporting with the default configuration.", action="store_true"
+    )
 
     ai_process_parser = subparsers.add_parser(
-        "process-with-ai", help="Process with AI."
+        "ai", help="Process with AI."
     )
     ai_process_parser.add_argument(
         "--history", default=False, help="Reprocess ai history", action="store_true"
@@ -155,6 +162,16 @@ def main():
 
     if args.command == "merge_dbs":
         merge_dbs()
+        return
+
+    if args.command == "start":
+        load_txt()
+        scrap_urls(recursive=True,ignore_valid_prefix=True,randomize=False,only_parents=False)
+        if args.ai:
+            process_with_ai()
+        export_urls()
+        export_urls(csv_file="output/urls-simplified.csv", simplify=True)
+        export_report()
         return
 
 
