@@ -23,16 +23,18 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     start_parser = subparsers.add_parser(
-        "start", help="Make the entire process of loading, processing and exporting with the default configuration."
+        "start",
+        help="Make the entire process of loading, processing and exporting with the default configuration.",
     )
 
     start_parser.add_argument(
-        "--ai", default=False, help="Make the entire process of loading, processing, reprocessing with AI and exporting with the default configuration.", action="store_true"
+        "--ai",
+        default=False,
+        help="Make the entire process of loading, processing, reprocessing with AI and exporting with the default configuration.",
+        action="store_true",
     )
 
-    ai_process_parser = subparsers.add_parser(
-        "ai", help="Process with AI."
-    )
+    ai_process_parser = subparsers.add_parser("ai", help="Process with AI.")
     ai_process_parser.add_argument(
         "--history", default=False, help="Reprocess ai history", action="store_true"
     )
@@ -52,9 +54,7 @@ def main():
     )
 
     load_txt_parser = subparsers.add_parser("load", help="Load txt file")
-    load_txt_parser.add_argument(
-        "-file", default=None, help="File path."
-    )
+    load_txt_parser.add_argument("-file", default=None, help="File path.")
 
     scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
     scrap_urls_parser.add_argument(
@@ -166,7 +166,12 @@ def main():
 
     if args.command == "start":
         load_txt()
-        scrap_urls(recursive=True,ignore_valid_prefix=True,randomize=False,only_parents=False)
+        scrap_urls(
+            recursive=True,
+            ignore_valid_prefix=True,
+            randomize=False,
+            only_parents=False,
+        )
         if args.ai:
             process_with_ai()
         export_urls()

@@ -58,10 +58,14 @@ def process_linkedin_job(url_report, url):
         changed = True
 
     if "description" in url_report.keys():
-        urls_manager.set_url_description(url=url["url"], value=url_report["description"])
+        urls_manager.set_url_description(
+            url=url["url"], value=url_report["description"]
+        )
         changed = True
     elif "og:description" in url_report.keys():
-        urls_manager.set_url_description(url=url["url"], value=url_report["og:description"])
+        urls_manager.set_url_description(
+            url=url["url"], value=url_report["og:description"]
+        )
         changed = True
     if not changed:
         urls_manager.set_url_error(url=url["url"], value="error: no h1 or description")
@@ -88,7 +92,9 @@ def process_linkedin_post(url_report, url):
 
     if description is not None:
         urls_manager.set_url_description(url=url["url"], value=description)
-        description_links = load_txt.put_urls_from_string(text_to_process=description, parent_url=url["url"])
+        description_links = load_txt.put_urls_from_string(
+            text_to_process=description, parent_url=url["url"]
+        )
         urls_manager.set_url_description_links(url=url["url"], value=description_links)
 
     if not changed:
@@ -96,9 +102,6 @@ def process_linkedin_post(url_report, url):
 
 
 def scrap_url(url):
-    # TODO: Use get_urls_valid_prefix_by_id()
-    df = urls_manager.get_urls_valid_prefix()
-
     # TODO: Need to change this
 
     if url["url_type"] is None:
@@ -119,19 +122,15 @@ def scrap_url(url):
         )
         return
 
-    # linkedin_redirect - linkedin (https://lnkd.in/)
     if url["url_type"] == "linkedin_redirect":
         process_linkedin_redirect(url_report=url_report, url=url)
 
-    # linkedin_feed - linkedin (https://%.linkedin.com/feed/)
     if url["url_type"] == "linkedin_feed":
         process_linkedin_feed(url_report=url_report, url=url)
 
-    # linkedin_job - linkedin (https://www.linkedin.com/jobs/)
     if url["url_type"] == "linkedin_job":
         process_linkedin_job(url_report=url_report, url=url)
 
-    # linkedin_job - linkedin (https://www.linkedin.com/jobs/)
     if url["url_type"] == "linkedin_post" or url["url_type"] == "generic":
         process_linkedin_post(url_report=url_report, url=url)
 

@@ -2,10 +2,12 @@ import os
 from urlextract import URLExtract
 import ohmyscrapper.models.urls_manager as urls_manager
 
+
 def _increment_file_name(text_file_content, file_name):
     print(f"reading and loading file `{file_name}`... ")
     with open(file_name, "r") as f:
         return text_file_content + f.read()
+
 
 def load_txt(file_name=None):
 
@@ -21,7 +23,9 @@ def load_txt(file_name=None):
         if not os.path.exists(file_name):
             print(f"\nfile `{file_name}` not found.")
             return
-        text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=file_name)
+        text_file_content = _increment_file_name(
+            text_file_content=text_file_content, file_name=file_name
+        )
     else:
         print("reading /input directory... ")
         dir_files = "input"
@@ -34,7 +38,10 @@ def load_txt(file_name=None):
             return
         elif len(text_files) == 1:
             print(f"reading file `{dir_files}/{text_files[0]}`... ")
-            text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=dir_files + "/" + text_files[0])
+            text_file_content = _increment_file_name(
+                text_file_content=text_file_content,
+                file_name=dir_files + "/" + text_files[0],
+            )
         else:
             print("\nChoose a text file. Use `*` for process all and `q` to quit:")
             for index, file in enumerate(text_files):
@@ -46,7 +53,10 @@ def load_txt(file_name=None):
                 text_file_option = input("Enter the file name: ")
                 if text_file_option == "*":
                     for file in text_files:
-                        text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=dir_files + "/" + file)
+                        text_file_content = _increment_file_name(
+                            text_file_content=text_file_content,
+                            file_name=dir_files + "/" + file,
+                        )
                         text_file_option = 0
                 elif text_file_option == "q":
                     return
@@ -54,7 +64,12 @@ def load_txt(file_name=None):
                     text_file_option = int(text_file_option)
                     print(len(text_files))
                     if text_file_option >= 0 and text_file_option < len(text_files):
-                        text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=dir_files + "/" + text_files[int(text_file_option)])
+                        text_file_content = _increment_file_name(
+                            text_file_content=text_file_content,
+                            file_name=dir_files
+                            + "/"
+                            + text_files[int(text_file_option)],
+                        )
 
     print("reading urls...")
     urls_found = put_urls_from_string(text_to_process=text_file_content)
@@ -62,8 +77,6 @@ def load_txt(file_name=None):
     print("--------------------")
     print("files processed")
     print(f"we found {urls_found} urls")
-
-
 
 
 def put_urls_from_string(text_to_process, parent_url=None):

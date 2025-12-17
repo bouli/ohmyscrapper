@@ -7,8 +7,10 @@ import time
 import os
 import yaml
 import json
+
 # TODO: !!! REFACTOR !!!
 load_dotenv()
+
 
 def reprocess_ai_history():
     df = urls_manager.get_ai_log().to_dict(orient="records")
@@ -17,28 +19,34 @@ def reprocess_ai_history():
 
 
 def process_ai_response(response):
-        job_positions = xml2dict(response)
+    job_positions = xml2dict(response)
 
-        for index, xml_item_children in job_positions.items():
-            for url_child_xml in xml_item_children:
+    for index, xml_item_children in job_positions.items():
+        for url_child_xml in xml_item_children:
 
-                url_parent = urls_manager.get_url_by_id(url_child_xml["id"])
-                if len(url_parent) > 0:
-                    url_parent = url_parent.iloc[0]
-                h1 = url_child_xml.copy()
-                del h1["id"]
-                del h1["url"]
-                h1 = " - ".join(h1.values())
-                if url_parent["description_links"] > 1 and url_child_xml["id"] != "":
-                    print("-- child updated -- \n", url_child_xml["url"] , ":", h1)
-                    urls_manager.set_url_h1(url_child_xml["url"], h1)
-                    urls_manager.set_url_ai_processed_by_url(url_child_xml["url"], str(json.dumps(url_child_xml)))
-                    if url_parent["url"] != url_child_xml["url"]:
-                        urls_manager.set_url_ai_processed_by_url(url_parent["url"], "children-update")
-                else:
-                    print("-- parent updated -- \n", url_parent["url"], ":", h1)
-                    urls_manager.set_url_h1(url_parent["url"], h1)
-                    urls_manager.set_url_ai_processed_by_url(url_parent["url"], str(json.dumps(url_child_xml)))
+            url_parent = urls_manager.get_url_by_id(url_child_xml["id"])
+            if len(url_parent) > 0:
+                url_parent = url_parent.iloc[0]
+            h1 = url_child_xml.copy()
+            del h1["id"]
+            del h1["url"]
+            h1 = " - ".join(h1.values())
+            if url_parent["description_links"] > 1 and url_child_xml["id"] != "":
+                print("-- child updated -- \n", url_child_xml["url"], ":", h1)
+                urls_manager.set_url_h1(url_child_xml["url"], h1)
+                urls_manager.set_url_ai_processed_by_url(
+                    url_child_xml["url"], str(json.dumps(url_child_xml))
+                )
+                if url_parent["url"] != url_child_xml["url"]:
+                    urls_manager.set_url_ai_processed_by_url(
+                        url_parent["url"], "children-update"
+                    )
+            else:
+                print("-- parent updated -- \n", url_parent["url"], ":", h1)
+                urls_manager.set_url_h1(url_parent["url"], h1)
+                urls_manager.set_url_ai_processed_by_url(
+                    url_parent["url"], str(json.dumps(url_child_xml))
+                )
 
 
 def xml2dict(xml_string):
@@ -46,18 +54,20 @@ def xml2dict(xml_string):
 
     children_items_dict = {}
     for item in soup.find_all():
-        if(item.parent.name == "[document]"):
+        if item.parent.name == "[document]":
             children_items_dict[item.name] = []
         elif item.parent.name in children_items_dict:
             children_items_dict[item.parent.name].append(_xml_children_to_dict(item))
 
     return children_items_dict
 
+
 def _xml_children_to_dict(xml):
     item_dict = {}
     for item in xml.find_all():
         item_dict[item.name] = item.text
     return item_dict
+
 
 def process_with_ai(recursive=True, triggered_times=0):
     triggered_times = triggered_times + 1
@@ -91,13 +101,23 @@ def process_with_ai(recursive=True, triggered_times=0):
     print("prompt:", prompt["name"])
     print("model:", prompt["model"])
     print("description:", prompt["description"])
-    prompt["instructions"] = prompt["instructions"].replace("{ohmyscrapper_texts}", texts)
+    prompt["instructions"] = prompt["instructions"].replace(
+        "{ohmyscrapper_texts}", texts
+    )
 
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
     client = genai.Client()
-    response = client.models.generate_content(model=prompt["model"], contents=prompt["instructions"])
+    response = client.models.generate_content(
+        model=prompt["model"], contents=prompt["instructions"]
+    )
     response = str(response.text)
-    urls_manager.add_ai_log(instructions=prompt["instructions"], response=response, model=prompt["model"], prompt_name=prompt["name"], prompt_file=prompt["prompt_file"])
+    urls_manager.add_ai_log(
+        instructions=prompt["instructions"],
+        response=response,
+        model=prompt["model"],
+        prompt_name=prompt["name"],
+        prompt_file=prompt["prompt_file"],
+    )
     print(response)
     print("^^^^^^")
     process_ai_response(response=response)
@@ -114,13 +134,16 @@ def process_with_ai(recursive=True, triggered_times=0):
         if triggered_times > 5:
             print("!!! This is a break to prevent budget accident$.")
             print("You triggered", triggered_times, "times the AI processing function.")
-            print("If you are sure this is correct, you can re-call this function again.")
+            print(
+                "If you are sure this is correct, you can re-call this function again."
+            )
             print("Please, check it.")
             return
 
         process_with_ai(recursive=recursive, triggered_times=triggered_times)
 
     return
+
 
 def _get_prompt():
     prompts_path = "prompts"
@@ -135,13 +158,17 @@ Process with AI this prompt: {ohmyscrapper_texts}
         os.mkdir(prompts_path)
 
         open(f"{prompts_path}/prompt.md", "w").write(default_prompt)
-        print(f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there.")
+        print(
+            f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there."
+        )
         return False
 
     prompt_files = os.listdir(prompts_path)
     if len(prompt_files) == 0:
         open(f"{prompts_path}/prompt.md", "w").write(default_prompt)
-        print(f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there.")
+        print(
+            f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there."
+        )
         return False
     prompt = {}
     if len(prompt_files) == 1:
@@ -151,8 +178,10 @@ Process with AI this prompt: {ohmyscrapper_texts}
         prompts = {}
         for index, file in enumerate(prompt_files):
             prompts[index] = _parse_prompt(prompts_path=prompts_path, prompt_file=file)
-            print(index, ":", prompts[index]['name'])
-        input_prompt = input("Type the number of the prompt you want to use or 'q' to quit: ")
+            print(index, ":", prompts[index]["name"])
+        input_prompt = input(
+            "Type the number of the prompt you want to use or 'q' to quit: "
+        )
         if input_prompt == "q":
             return False
         try:
@@ -162,6 +191,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
             prompt = _get_prompt()
     return prompt
 
+
 def _parse_prompt(prompts_path, prompt_file):
     prompt = {}
     raw_prompt = open(f"{prompts_path}/{prompt_file}", "r").read().split("---")
@@ -170,6 +200,8 @@ def _parse_prompt(prompts_path, prompt_file):
     prompt["prompt_file"] = prompt_file
 
     return prompt
+
+
 # TODO: Separate gemini from basic function
 def _process_with_gemini(model, instructions):
     response = """"""

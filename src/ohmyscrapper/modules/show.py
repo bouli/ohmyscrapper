@@ -47,6 +47,7 @@ def export_report(csv_file="output/report.csv"):
     print("Urls report preview exported to", csv_file + "-preview.html")
     print("--------------------")
 
+
 # TODO: Add transformation layer
 def _clear_file(txt_tile):
     with open(txt_tile, "r") as f:
@@ -55,6 +56,7 @@ def _clear_file(txt_tile):
         content = content.replace(" -<", "<")
         with open(txt_tile, "w") as f:
             f.write(content)
+
 
 def show_urls(limit=0, jump_to_page=0):
     df = urls_manager.get_urls(limit=limit)

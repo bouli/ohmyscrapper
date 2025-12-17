@@ -19,12 +19,15 @@ def get_db_path():
 def get_db_connection():
     return sqlite3.connect(get_db_path())
 
+
 def use_connection(func):
     def provide_connection(*args, **kwargs):
         global conn
         conn = get_db_connection()
         return func(*args, **kwargs)
+
     return provide_connection
+
 
 @use_connection
 def create_tables():
@@ -216,10 +219,12 @@ def add_ai_log(instructions, response, model, prompt_file, prompt_name):
     )
     conn.commit()
 
+
 @use_connection
 def get_ai_log():
     df = pd.read_sql_query(f"SELECT * FROM ai_log", conn)
     return df
+
 
 @use_connection
 def set_url_destiny(url, destiny):
@@ -258,16 +263,24 @@ def set_url_ai_processed_by_id(id, json_str):
     value = 1
     value = str(value).strip()
     c = conn.cursor()
-    c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE id = ?", (value, json_str, id))
+    c.execute(
+        "UPDATE urls SET ai_processed = ? , json_ai = ? WHERE id = ?",
+        (value, json_str, id),
+    )
     conn.commit()
+
 
 @use_connection
 def set_url_empty_ai_processed_by_id(id, json_str="empty result"):
     value = 1
     value = str(value).strip()
     c = conn.cursor()
-    c.execute("UPDATE urls SET ai_processed = ? , json_ai = ? WHERE ai_processed = 0 AND id = ?", (value, json_str, id))
+    c.execute(
+        "UPDATE urls SET ai_processed = ? , json_ai = ? WHERE ai_processed = 0 AND id = ?",
+        (value, json_str, id),
+    )
     conn.commit()
+
 
 @use_connection
 def set_url_ai_processed_by_url(url, json_str):
@@ -275,7 +288,10 @@ def set_url_ai_processed_by_url(url, json_str):
     value = str(value).strip()
     url = clean_url(url)
     c = conn.cursor()
-    c.execute("UPDATE urls SET ai_processed = ?, json_ai = ? WHERE url = ?", (value, json_str, url))
+    c.execute(
+        "UPDATE urls SET ai_processed = ?, json_ai = ? WHERE url = ?",
+        (value, json_str, url),
+    )
     conn.commit()
 
 
