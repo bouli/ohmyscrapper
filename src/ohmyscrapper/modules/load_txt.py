@@ -2,22 +2,68 @@ import os
 from urlextract import URLExtract
 import ohmyscrapper.models.urls_manager as urls_manager
 
+def _increment_file_name(text_file_content, file_name):
+    print(f"reading and loading file `{file_name}`... ")
+    with open(file_name, "r") as f:
+        return text_file_content + f.read()
 
-def load_txt(file_name="input/_chat.txt"):
+def load_txt(file_name=None):
 
     if not os.path.exists("input"):
         os.mkdir("input")
 
     urls_manager.create_tables()
     urls_manager.seeds()
-    # make it recursive for all files
-    text_file_content = open(file_name, "r").read()
 
-    put_urls_from_string(text_to_process=text_file_content)
+    text_file_content = ""
+    if file_name is not None:
+        print(f"reading file `{file_name}`... ")
+        if not os.path.exists(file_name):
+            print(f"\nfile `{file_name}` not found.")
+            return
+        text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=file_name)
+    else:
+        print("reading /input directory... ")
+        dir_files = "input"
+        text_files = os.listdir(dir_files)
+        for file in text_files:
+            if not file.endswith(".txt"):
+                text_files.remove(file)
+        if len(text_files) == 0:
+            print("No text files found in /input directory.")
+            return
+        elif len(text_files) == 1:
+            print(f"reading file `{dir_files}/{text_files[0]}`... ")
+            text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=dir_files + "/" + text_files[0])
+        else:
+            print("\nChoose a text file. Use `*` for process all and `q` to quit:")
+            for index, file in enumerate(text_files):
+                print(index, ":", dir_files + "/" + file)
 
-    # move_it_to_processed
+            # TODO: there is a better way for sure!
+            text_file_option = -1
+            while text_file_option < 0 or text_file_option >= len(text_files):
+                text_file_option = input("Enter the file name: ")
+                if text_file_option == "*":
+                    for file in text_files:
+                        text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=dir_files + "/" + file)
+                        text_file_option = 0
+                elif text_file_option == "q":
+                    return
+                elif text_file_option.isdigit():
+                    text_file_option = int(text_file_option)
+                    print(len(text_files))
+                    if text_file_option >= 0 and text_file_option < len(text_files):
+                        text_file_content = _increment_file_name(text_file_content=text_file_content, file_name=dir_files + "/" + text_files[int(text_file_option)])
+
+    print("reading urls...")
+    urls_found = put_urls_from_string(text_to_process=text_file_content)
+
     print("--------------------")
-    print(file_name, "processed")
+    print("files processed")
+    print(f"we found {urls_found} urls")
+
+
 
 
 def put_urls_from_string(text_to_process, parent_url=None):

@@ -32,7 +32,7 @@ uvx ohmyscrapper --version
 
 OhMyScrapper works in 3 stages:
 
-1. It collects and loads urls from a text (by default `input/_chat.txt`) in a database;
+1. It collects and loads urls from a text in a database;
 2. It scraps/access the collected urls and read what is relevant. If it finds new urls, they are collected as well;
 3. Export a list of urls in CSV files;
 
@@ -40,7 +40,7 @@ You can do 3 stages with the command:
 ```shell
 ohmyscrapper start
 ```
-> Remember to add your text file in the folder `/input` with the name `_chat.txt`!
+> Remember to add your text file in the folder `/input` with the name that finishes with `.txt`!
 
 You will find the exported files in the folder `/output` like this:
 - `/output/report.csv`
@@ -52,15 +52,14 @@ You will find the exported files in the folder `/output` like this:
 
 ### BUT: if you want to do step by step, here it is:
 
-First we load a text file you would like to look for urls, the idea here is to
-use the whatsapp history, but it works with any txt file.
+First we load a text file you would like to look for urls. It it works with any txt file.
 
-The default file is `input/_chat.txt`. If you have the default file you just use
-the command `load`:
+The default folder is `/input`. Put one or more text (finished with `.txt`) files
+in this folder and use the command `load`:
 ```shell
 ohmyscrapper load
 ```
-or, if you have another file, just use the argument `-file` like this:
+or, if you have another file in a different folder, just use the argument `-file` like this:
 ```shell
 ohmyscrapper load -file=my-text-file.txt
 ```

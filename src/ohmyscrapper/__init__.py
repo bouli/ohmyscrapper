@@ -53,7 +53,7 @@ def main():
 
     load_txt_parser = subparsers.add_parser("load", help="Load txt file")
     load_txt_parser.add_argument(
-        "-file", default="input/_chat.txt", help="File path. Default is input/_chat.txt"
+        "-file", default=None, help="File path."
     )
 
     scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
