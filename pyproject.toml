@@ -1,6 +1,6 @@
 [project]
 name = "ohmyscrapper"
-version = "0.2.2"
+version = "0.2.3"
 description = "This project aims to create a text-based scraper containing links to create a final PDF with general information about job openings."
 readme = "README.md"
 authors = [
