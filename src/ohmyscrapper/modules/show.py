@@ -12,7 +12,7 @@ def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):
 
     df.to_csv(csv_file, index=False)
     print("--------------------")
-    print("Urls exported to", csv_file)
+    print("📊🖋️ Urls exported to", csv_file)
 
     df.replace(
         {
@@ -22,7 +22,7 @@ def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):
         inplace=True,
     )
     df.to_html(csv_file + "-preview.html", index=False)
-    print("Urls preview exported to", csv_file + "-preview.html")
+    print("📜🖋️ Urls preview exported to", csv_file + "-preview.html")
     print("--------------------")
 
 
@@ -32,7 +32,7 @@ def export_report(csv_file="output/report.csv"):
     df.to_csv(csv_file, index=False)
     _clear_file(csv_file)
     print("--------------------")
-    print("Urls report exported to", csv_file)
+    print("📊🖋️ Urls report exported to", csv_file)
 
     df.replace(
         {
@@ -44,7 +44,7 @@ def export_report(csv_file="output/report.csv"):
     df.to_html(csv_file + "-preview.html", index=False)
     _clear_file(csv_file + "-preview.html")
 
-    print("Urls report preview exported to", csv_file + "-preview.html")
+    print("📜🖋️ Urls report preview exported to", csv_file + "-preview.html")
     print("--------------------")
 
 

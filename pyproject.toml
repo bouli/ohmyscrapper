@@ -1,7 +1,7 @@
 [project]
 name = "ohmyscrapper"
 version = "0.3.0"
-description = "This project aims to create a text-based scraper containing links to create a final PDF with general information about job openings."
+description = "OhMyScrapper scrapes texts and urls looking for links and jobs-data to create a final report with general information about job positions."
 readme = "README.md"
 authors = [
     { name = "Cesar Cardoso", email = "hello@cesarcardoso.cc" }

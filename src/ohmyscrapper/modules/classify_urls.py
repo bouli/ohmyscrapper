@@ -9,7 +9,7 @@ def classify_urls(recursive=False):
 
     keep_alive = True
     while keep_alive:
-        print("waking up!")
+        print("#️⃣  URL Classifier woke up to classify urls!")
         for index, row_prefix in df.iterrows():
             df_urls = urls_manager.get_url_like_unclassified(
                 like_condition=row_prefix["url_prefix"]
@@ -20,8 +20,8 @@ def classify_urls(recursive=False):
                 )
 
         if not recursive:
-            print("ending...")
+            print("#️⃣  URL Classifier said: I'm done! See you soon...")
             keep_alive = False
         else:
-            print("sleeping...")
+            print("#️⃣  URL Classifier is taking a nap...")
             time.sleep(10)

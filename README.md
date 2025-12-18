@@ -1,13 +1,14 @@
-# OhMyScrapper - v0.3.0
+# 🐶 OhMyScrapper - v0.3.0
 
-This project aims to create a text-based scraper containing links to create a
-final PDF with general information about job openings.
+OhMyScrapper scrapes texts and urls looking for links and jobs-data to create a
+final report with general information about job positions.
 
 ## Scope
 
 - Read texts;
-- Extract links;
-- Use meta og:tags to extract information;
+- Extract and load urls;
+- Scrapes the urls looking for og:tags and titles;
+- Export a list of links with relevant information;
 
 ## Installation
 

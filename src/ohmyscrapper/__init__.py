@@ -24,7 +24,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     start_parser = subparsers.add_parser(
         "start",
-        help="Make the entire process of loading, processing and exporting with the default configuration.",
+        help="Make the entire process of 📦 loading, 🐶 scraping and 📜🖋️ exporting with the default configuration.",
     )
 
     start_parser.add_argument(
@@ -53,10 +53,13 @@ def main():
         "--recursive", default=False, help="Run in recursive mode", action="store_true"
     )
 
-    load_txt_parser = subparsers.add_parser("load", help="Load txt file")
+    load_txt_parser = subparsers.add_parser("load", help="📦 Load txt file")
     load_txt_parser.add_argument("-file", default=None, help="File path.")
+    load_txt_parser.add_argument(
+        "--verbose", default=False, help="Run in verbose mode", action="store_true"
+    )
 
-    scrap_urls_parser = subparsers.add_parser("scrap-urls", help="Scrap urls")
+    scrap_urls_parser = subparsers.add_parser("scrap-urls", help="🐶 Scrap urls")
     scrap_urls_parser.add_argument(
         "--recursive", default=False, help="Run in recursive mode", action="store_true"
     )
@@ -69,8 +72,11 @@ def main():
     scrap_urls_parser.add_argument(
         "--only-parents", default=False, help="Only parents urls", action="store_true"
     )
+    scrap_urls_parser.add_argument(
+        "--verbose", default=False, help="Run in verbose mode", action="store_true"
+    )
 
-    sniff_url_parser = subparsers.add_parser("sniff-url", help="Check url")
+    sniff_url_parser = subparsers.add_parser("sniff-url", help="🐕 Sniff/Check url")
     sniff_url_parser.add_argument(
         "url", default="https://cesarcardoso.cc/", help="Url to sniff"
     )
@@ -82,7 +88,7 @@ def main():
     show_urls_parser.add_argument("--limit", default=0, help="Limit of lines to show")
     show_urls_parser.add_argument("-url", default="", help="Url to show")
 
-    export_parser = subparsers.add_parser("export", help="Export urls to csv.")
+    export_parser = subparsers.add_parser("export", help="📊🖋️ Export urls to csv.")
     export_parser.add_argument("--limit", default=0, help="Limit of lines to export")
     export_parser.add_argument(
         "--file",
@@ -96,13 +102,10 @@ def main():
         action="store_true",
     )
 
-    report_parser = subparsers.add_parser("report", help="Export urls report to csv.")
+    report_parser = subparsers.add_parser(
+        "report", help="📜🖋️ Export urls report to csv."
+    )
     merge_parser = subparsers.add_parser("merge_dbs", help="Merge databases.")
-
-    # TODO: What is that?
-    # seed_parser.set_defaults(func=seed)
-    # classify_urls_parser.set_defaults(func=classify_urls)
-    # load_txt_parser.set_defaults(func=load_txt)
 
     args = parser.parse_args()
 
@@ -111,7 +114,7 @@ def main():
         return
 
     if args.command == "load":
-        load_txt(args.file)
+        load_txt(file_name=args.file, verbose=args.verbose)
         return
 
     if args.command == "seed":
@@ -132,6 +135,7 @@ def main():
             ignore_valid_prefix=args.ignore_type,
             randomize=args.randomize,
             only_parents=args.only_parents,
+            verbose=args.verbose,
         )
         return
 
