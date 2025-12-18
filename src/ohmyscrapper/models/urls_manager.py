@@ -23,8 +23,8 @@ def get_db_connection():
 def use_connection(func):
     def provide_connection(*args, **kwargs):
         global conn
-        conn = get_db_connection()
-        return func(*args, **kwargs)
+        with get_db_connection() as conn:
+            return func(*args, **kwargs)
 
     return provide_connection
 
