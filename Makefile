@@ -13,6 +13,9 @@ scrap-urls:
 scrap-urls-only-parents:
 	$(RUNNER) scrap-urls --recursive --ignore-type --only-parents
 
+load-single-url:
+	$(RUNNER) load -input=https://cesarcardoso.cc/
+
 export:
 	$(RUNNER) export
 	$(RUNNER) export --file=output/urls-simplified.csv --simplify

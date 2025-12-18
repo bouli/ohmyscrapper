@@ -60,10 +60,16 @@ in this folder and use the command `load`:
 ```shell
 ohmyscrapper load
 ```
-or, if you have another file in a different folder, just use the argument `-file` like this:
+or, if you have another file in a different folder, just use the argument `-input` like this:
 ```shell
-ohmyscrapper load -file=my-text-file.txt
+ohmyscrapper load -input=my-text-file.txt
 ```
+In this case, you can add an url directly to the database, like this:
+```shell
+ohmyscrapper load -input=https://cesarcardoso.cc/
+```
+That will append the last url in the database to be scraped.
+
 That will create a database if it doesn't exist and store every url the oh-my-scrapper
 find. After that, let's scrap the urls with the command `scrap-urls`:
 

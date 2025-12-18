@@ -22,11 +22,15 @@ def load_txt(file_name=None, verbose=False):
     if file_name is not None:
         print(f"📖 reading file `{file_name}`... ")
         if not os.path.exists(file_name):
-            print(f"\n file `{file_name}` not found.")
-            return
-        text_file_content = _increment_file_name(
-            text_file_content=text_file_content, file_name=file_name
-        )
+            if file_name.startswith("https://") or file_name.startswith("http://"):
+                text_file_content = " " + file_name + " "
+            else:
+                print(f"\n file `{file_name}` not found.")
+                return
+        else:
+            text_file_content = _increment_file_name(
+                text_file_content=text_file_content, file_name=file_name
+            )
     else:
         print("📂 reading /input directory... ")
         dir_files = "input"
