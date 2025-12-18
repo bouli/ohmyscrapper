@@ -1,6 +1,6 @@
 [project]
 name = "ohmyscrapper"
-version = "0.3.4"
+version = "0.4.0"
 description = "OhMyScrapper scrapes texts and urls looking for links and jobs-data to create a final report with general information about job positions."
 readme = "README.md"
 authors = [
