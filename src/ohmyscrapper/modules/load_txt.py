@@ -16,7 +16,6 @@ def load_txt(file_name=None, verbose=False):
     if not os.path.exists("input"):
         os.mkdir("input")
 
-    urls_manager.create_tables()
     urls_manager.seeds()
 
     text_file_content = ""

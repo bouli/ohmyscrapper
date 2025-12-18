@@ -17,6 +17,8 @@ def get_db_path():
 
 
 def get_db_connection():
+    if not os.path.exists(get_db_path()):
+        create_tables(sqlite3.connect(get_db_path()))
     return sqlite3.connect(get_db_path())
 
 
@@ -29,8 +31,7 @@ def use_connection(func):
     return provide_connection
 
 
-@use_connection
-def create_tables():
+def create_tables(conn):
 
     c = conn.cursor()
     c.execute(
@@ -44,12 +45,8 @@ def create_tables():
         "CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)"
     )
 
-    return pd.read_sql_query("SELECT * FROM urls LIMIT 100", conn)
-
 
 def seeds():
-    create_tables()
-
     add_urls_valid_prefix("https://%.linkedin.com/posts/%", "linkedin_post")
     add_urls_valid_prefix("https://lnkd.in/%", "linkedin_redirect")
     add_urls_valid_prefix("https://%.linkedin.com/jobs/view/%", "linkedin_job")
