@@ -3,7 +3,7 @@ import argparse
 from ohmyscrapper.modules.classify_urls import classify_urls
 from ohmyscrapper.modules.sniff_url import sniff_url
 from ohmyscrapper.modules.load_txt import load_txt
-from ohmyscrapper.modules.seed import seed
+from ohmyscrapper.modules.seed import seed, export_url_types_to_file
 from ohmyscrapper.modules.scrap_urls import scrap_urls
 from ohmyscrapper.modules.show import (
     show_url,
@@ -40,7 +40,13 @@ def main():
     )
 
     seed_parser = subparsers.add_parser(
-        "seed", help="Seed database. Necessary to classify urls."
+        "seed", help="Seed database with `url_types` to classify the `urls`."
+    )
+    seed_parser.add_argument(
+        "--export",
+        default=False,
+        help="Add all `url_types` from the bank to the `/customize/url_types.yaml` file.",
+        action="store_true",
     )
     untouch_parser = subparsers.add_parser(
         "untouch-all", help="Untouch all urls. That resets classification"
@@ -118,7 +124,10 @@ def main():
         return
 
     if args.command == "seed":
-        seed()
+        if args.export:
+            export_url_types_to_file()
+        else:
+            seed()
         return
 
     if args.command == "untouch-all":

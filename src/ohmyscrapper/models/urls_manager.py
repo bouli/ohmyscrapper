@@ -46,12 +46,10 @@ def create_tables(conn):
     )
 
 
-def seeds():
-    add_urls_valid_prefix("https://%.linkedin.com/posts/%", "linkedin_post")
-    add_urls_valid_prefix("https://lnkd.in/%", "linkedin_redirect")
-    add_urls_valid_prefix("https://%.linkedin.com/jobs/view/%", "linkedin_job")
-    add_urls_valid_prefix("https://%.linkedin.com/feed/%", "linkedin_feed")
-    add_urls_valid_prefix("https://%.linkedin.com/company/%", "linkedin_company")
+def seeds(seeds={}):
+
+    for url_type, url_prefix in seeds.items():
+        add_urls_valid_prefix(url_prefix, url_type)
 
     return True
 
