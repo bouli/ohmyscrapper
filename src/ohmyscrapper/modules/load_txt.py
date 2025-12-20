@@ -9,7 +9,7 @@ def _increment_file_name(text_file_content, file_name):
         return text_file_content + f.read()
 
 
-def load_txt(file_name=None, verbose=False):
+def load_txt(file_name="input", verbose=False):
     if not os.path.exists("db"):
         os.mkdir("db")
 
@@ -19,7 +19,7 @@ def load_txt(file_name=None, verbose=False):
     urls_manager.seeds()
 
     text_file_content = ""
-    if file_name is not None:
+    if file_name is not None and not os.path.isdir(file_name) :
         print(f"📖 reading file `{file_name}`... ")
         if not os.path.exists(file_name):
             if file_name.startswith("https://") or file_name.startswith("http://"):
@@ -33,7 +33,10 @@ def load_txt(file_name=None, verbose=False):
             )
     else:
         print("📂 reading /input directory... ")
-        dir_files = "input"
+        if file_name is None:
+            dir_files = "input"
+        else:
+            dir_files = file_name
         text_files = os.listdir(dir_files)
         for file in text_files:
             if not file.endswith(".txt"):
