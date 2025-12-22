@@ -19,7 +19,7 @@ from ohmyscrapper.modules.merge_dbs import merge_dbs
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.5.1")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.5.2")
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     start_parser = subparsers.add_parser(
