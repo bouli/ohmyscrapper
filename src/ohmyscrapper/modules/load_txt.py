@@ -19,7 +19,7 @@ def load_txt(file_name="input", verbose=False):
     urls_manager.seeds()
 
     text_file_content = ""
-    if file_name is not None and not os.path.isdir(file_name) :
+    if file_name is not None and not os.path.isdir(file_name):
         print(f"📖 reading file `{file_name}`... ")
         if not os.path.exists(file_name):
             if file_name.startswith("https://") or file_name.startswith("http://"):

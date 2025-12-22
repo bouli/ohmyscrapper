@@ -60,7 +60,9 @@ def main():
     )
 
     load_txt_parser = subparsers.add_parser("load", help="📦 Load txt file")
-    load_txt_parser.add_argument("-input", default=None, help="File/Folder path or url.")
+    load_txt_parser.add_argument(
+        "-input", default=None, help="File/Folder path or url."
+    )
     load_txt_parser.add_argument(
         "--verbose", default=False, help="Run in verbose mode", action="store_true"
     )
