@@ -61,7 +61,7 @@ def export_url_types_to_file():
 
 
 def _get_url_types_file_path():
-    customize_folder = config.get_dir("customize")
+    customize_folder = config.get_dir()
     url_types_file = config.get_files("url_types")
 
     url_types_file = os.path.join(customize_folder,url_types_file)

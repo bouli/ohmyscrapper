@@ -15,12 +15,14 @@ from ohmyscrapper.modules.show import (
 from ohmyscrapper.modules.untouch_all import untouch_all
 from ohmyscrapper.modules.process_with_ai import process_with_ai, reprocess_ai_history
 from ohmyscrapper.modules.merge_dbs import merge_dbs
+from ohmyscrapper.core.config import update
 
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
     parser.add_argument("--version", action="version", version="%(prog)s v0.5.3")
 
+    update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     start_parser = subparsers.add_parser(
         "start",
@@ -45,7 +47,7 @@ def main():
     seed_parser.add_argument(
         "--export",
         default=False,
-        help="Add all `url_types` from the bank to the `/customize/url_types.yaml` file.",
+        help="Add all `url_types` from the bank to the `/ohmyscrapper/url_types.yaml` file.",
         action="store_true",
     )
     untouch_parser = subparsers.add_parser(

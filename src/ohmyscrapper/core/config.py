@@ -1,10 +1,10 @@
 import yaml
 import os
 
-def get_dir(param):
+def get_dir(param="ohmyscrapper"):
     parent_param = 'default_dirs'
 
-    if param == "customize":
+    if param == "ohmyscrapper":
         folder = "./" + param
     else:
         folder = get_param(parent_param, param)
@@ -25,7 +25,7 @@ def get_ai(param):
     return get_param(parent_param = 'ai', param=param)
 
 def load_config(force_default=False):
-    customize_folder = "customize"
+    customize_folder = "ohmyscrapper"
     if not os.path.exists(customize_folder):
         os.mkdir(customize_folder)
 
@@ -73,3 +73,15 @@ def _default_config():
                     "url_types" : "url_types.yaml"
                 }
             }
+
+def update():
+    legacy_folder = "./customize"
+    new_folder = "./ohmyscrapper"
+    if os.path.exists(legacy_folder) and not os.path.exists(new_folder):
+        yes_no = input("We detected a legacy folder system for your OhMyScrapper, would you like to update? \n" \
+        "If you don't update, a new version will be used and your legacy folder will be ignored. \n" \
+        "[Y] for yes or  any other thing to ignore: ")
+        if yes_no == "Y":
+            os.rename(legacy_folder,new_folder)
+        print(" You are up-to-date! =)")
+        print("")
