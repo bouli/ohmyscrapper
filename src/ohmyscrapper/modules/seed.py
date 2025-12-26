@@ -1,4 +1,5 @@
 import ohmyscrapper.models.urls_manager as urls_manager
+from ohmyscrapper.core import config
 import os
 import yaml
 
@@ -16,7 +17,7 @@ def seed():
         print("🫒 db seeded")
     return
 
-
+# TODO: Make it yaml.safe_dump
 def _push_seed_sample_data():
     sample_data = """
 linkedin_post: https://%.linkedin.com/posts/%
@@ -60,11 +61,8 @@ def export_url_types_to_file():
 
 
 def _get_url_types_file_path():
-    customize_folder = "customize"
-    url_types_file = "url_types.yaml"
+    customize_folder = config.get_dir("customize")
+    url_types_file = config.get_files("url_types")
 
-    if not os.path.exists(customize_folder):
-        os.mkdir((customize_folder))
-
-    url_types_file = customize_folder + "/" + url_types_file
+    url_types_file = os.path.join(customize_folder,url_types_file)
     return url_types_file

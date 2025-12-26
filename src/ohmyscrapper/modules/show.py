@@ -1,4 +1,5 @@
 import ohmyscrapper.models.urls_manager as urls_manager
+from ohmyscrapper.core import config
 import math
 import os
 from rich.console import Console
@@ -6,8 +7,8 @@ from rich.table import Table
 
 
 def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):
-    if not os.path.exists("output"):
-        os.mkdir("output")
+    output_folder = config.get_dir("output")
+
     df = urls_manager.get_urls(limit=limit)
 
     if simplify:
@@ -33,8 +34,7 @@ def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):
 
 
 def export_report(csv_file="output/report.csv"):
-    if not os.path.exists("output"):
-        os.mkdir("output")
+    output_folder = config.get_dir("output")
     df = urls_manager.get_urls_report()
 
     df.to_csv(csv_file, index=False)
@@ -107,8 +107,6 @@ def show_urls(limit=0, jump_to_page=0):
                 elif jump_to_page >= 0:
                     show_urls(limit=limit, jump_to_page=jump_to_page)
                     break
-
-    return
 
     return
 

@@ -1,4 +1,5 @@
 import ohmyscrapper.models.urls_manager as urls_manager
+from ohmyscrapper.core import config
 from bs4 import BeautifulSoup
 from google import genai
 from dotenv import load_dotenv
@@ -146,7 +147,9 @@ def process_with_ai(recursive=True, triggered_times=0):
 
 
 def _get_prompt():
-    prompts_path = "prompts"
+    prompts_path = config.get_dir(param="prompts")
+    default_prommpt_file = os.path.join(prompts_path,config.get_ai("default_prompt_file"))
+
     default_prompt = """---
 model: "gemini-2.5-flash"
 name: "default-prompt"
@@ -156,8 +159,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
 """
     if not os.path.exists(prompts_path):
         os.mkdir(prompts_path)
-
-        open(f"{prompts_path}/prompt.md", "w").write(default_prompt)
+        open(default_prommpt_file, "w").write(default_prompt)
         print(
             f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there."
         )
@@ -165,7 +167,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
 
     prompt_files = os.listdir(prompts_path)
     if len(prompt_files) == 0:
-        open(f"{prompts_path}/prompt.md", "w").write(default_prompt)
+        open(default_prommpt_file, "w").write(default_prompt)
         print(
             f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there."
         )
@@ -194,7 +196,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
 
 def _parse_prompt(prompts_path, prompt_file):
     prompt = {}
-    raw_prompt = open(f"{prompts_path}/{prompt_file}", "r").read().split("---")
+    raw_prompt = open(os.path.join(prompts_path,prompt_file), "r").read().split("---")
     prompt = yaml.safe_load(raw_prompt[1])
     prompt["instructions"] = raw_prompt[2].strip()
     prompt["prompt_file"] = prompt_file
