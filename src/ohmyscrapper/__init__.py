@@ -20,7 +20,7 @@ from ohmyscrapper.core.config import update
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.5.3")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.6.0")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
