@@ -25,25 +25,28 @@ def get_ai(param):
     return get_param(parent_param = 'ai', param=param)
 
 def load_config(force_default=False):
-    customize_folder = "ohmyscrapper"
-    if not os.path.exists(customize_folder):
-        os.mkdir(customize_folder)
-
-    config_file = "config.yaml"
-    config_file = os.path.join(customize_folder, config_file)
-    if force_default or not os.path.exists(config_file):
-        with open(config_file, "+w") as f:
-            config_params = _default_config()
-            f.write(yaml.safe_dump(config_params))
-    else:
-        with open(config_file, "r") as f:
-            config_params = yaml.safe_load(f.read())
+    config_file_name = "config.yaml"
+    config_params = create_and_read_config_file(file_name=config_file_name, force_default=force_default)
 
     if config_params is None or "default_dirs" not in config_params:
         config_params = load_config(force_default=True)
 
     return config_params
 
+def create_and_read_config_file(file_name, force_default=False):
+    customize_folder = "ohmyscrapper"
+    if not os.path.exists(customize_folder):
+        os.mkdir(customize_folder)
+
+    config_file = os.path.join(customize_folder, file_name)
+    if force_default or not os.path.exists(config_file):
+        with open(config_file, "+w") as f:
+            config_params = get_default_file(default_file=file_name)
+            f.write(yaml.safe_dump(config_params))
+    else:
+        with open(config_file, "r") as f:
+            config_params = yaml.safe_load(f.read())
+    return config_params
 
 def get_param(parent_param, param):
     default_dirs = load_config()[parent_param]
@@ -52,27 +55,12 @@ def get_param(parent_param, param):
     else:
         raise Exception(f"{param} do not exist in your params {parent_param}.")
 
-def _default_config():
-    return {
-                "default_dirs": {
-                    "input": "./input",
-                    "output": "./output",
-                    "db": "./db",
-                    "prompts": "./prompts",
-                    "templates": "./templates",
-                },
-                "db":
-                {
-                    "db_file": "local.db"
-                },
-                "ai":
-                {
-                    "default_prompt_file" :"prompt.md"
-                },
-                "default_files": {
-                    "url_types" : "url_types.yaml"
-                }
-            }
+def get_default_file(default_file):
+    default_files_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),'default_files')
+    default_file = os.path.join(default_files_dir, default_file)
+    with open(default_file, "r") as f:
+        return yaml.safe_load(f.read())
+
 
 def update():
     legacy_folder = "./customize"

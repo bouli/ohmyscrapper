@@ -1,0 +1,15 @@
+db:
+  db_file: local.db
+
+default_dirs:
+  db: ./db
+  input: ./input
+  output: ./output
+  prompts: ./prompts
+  templates: ./templates
+
+default_files:
+  url_types: url_types.yaml
+
+ai:
+  default_prompt_file: prompt.md
