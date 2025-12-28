@@ -1,11 +1,15 @@
 import ohmyscrapper.models.urls_manager as urls_manager
+from ohmyscrapper.modules import seed
 import pandas as pd
 import time
 
 
 def classify_urls(recursive=False):
-    urls_manager.seeds()
     df = urls_manager.get_urls_valid_prefix()
+    if len(df) == 0:
+        seed.seed()
+        classify_urls(recursive=recursive)
+        return
 
     keep_alive = True
     while keep_alive:
