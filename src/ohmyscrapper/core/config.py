@@ -67,11 +67,14 @@ def get_url_types():
     )
 
 def get_url_sniffing():
-    url_types_file = get_files("url_sniffing")
+    file = get_files("url_sniffing")
     return config_files.create_and_read_config_file(
-        url_types_file, default_app_dir=default_app_dir
+        file, default_app_dir=default_app_dir
     )
 
+def append_url_sniffing(data):
+    file = get_files("url_sniffing")
+    _append_config_file(data, file)
 
 def append_url_types(url_types):
     url_types_file = get_files("url_types")

@@ -3,13 +3,10 @@ from bs4 import BeautifulSoup
 import json
 
 
-def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=False, metatags_to_search=None, body_tags_to_search=None ):
-    if not silent:
-        print("checking url:", url)
-
-    r = requests.get(url=url)
-    soup = BeautifulSoup(r.text, "html.parser")
-    if metatags_to_search is None:
+def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=False, sniffing_config={} ):
+    if 'metatags' in sniffing_config:
+        metatags_to_search = sniffing_config['metatags']
+    else:
         metatags_to_search = [
             "description",
             "og:url",
@@ -19,20 +16,29 @@ def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=Fal
             "lnkd:url",
         ]
 
-    if type(metatags_to_search) is dict:
-        metatags_to_search = list(metatags_to_search.keys())
-
-    if body_tags_to_search is None:
+    if 'bodytags' in sniffing_config:
+        body_tags_to_search = sniffing_config['bodytags']
+    else:
         body_tags_to_search = {
             "h1": "",
             "h2": "",
         }
+
+    if type(metatags_to_search) is dict:
+        metatags_to_search = list(metatags_to_search.keys())
+
     # force clean concatenate without any separator
     if type(body_tags_to_search) is dict:
         body_tags_to_search = list(body_tags_to_search.keys())
 
     if type(body_tags_to_search) is list:
         body_tags_to_search = dict.fromkeys(body_tags_to_search, " ")
+
+    if not silent:
+        print("checking url:", url)
+
+    r = requests.get(url=url)
+    soup = BeautifulSoup(r.text, "html.parser")
 
     final_report = {}
     final_report["scrapped-url"] = url
@@ -141,5 +147,5 @@ def _complementary_report(final_report, soup, silent):
     return final_report
 
 
-def get_tags(url, metatags_to_search=None, body_tags_to_search=None):
-    return sniff_url(url=url, silent=True, metatags_to_search=metatags_to_search, body_tags_to_search=body_tags_to_search)
+def get_tags(url, sniffing_config={}):
+    return sniff_url(url=url, silent=True, sniffing_config=sniffing_config)

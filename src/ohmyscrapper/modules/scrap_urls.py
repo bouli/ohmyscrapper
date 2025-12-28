@@ -124,21 +124,17 @@ def scrap_url(url, verbose=False):
         if verbose:
             print("\n\n", url["url_type"] + ":", url["url"])
     try:
-        metatags_to_search = []
-        body_tags_to_search = {}
-
-        url_type = 'linkedin_post'
+        url_type = url["url_type"]
         sniffing_config = config.get_url_sniffing()
 
-        if url_type in sniffing_config and 'metatags' in sniffing_config[url_type]:
-            metatags_to_search = sniffing_config[url_type]['metatags']
+        if url_type not in sniffing_config:
+            default_type_sniffing = {'bodytags': [{'h1': 'title'}], 'metatags': [{'og:title': 'title'}, {'og:description': 'description'}, {'description': 'description'}]}
+            config.append_url_sniffing({url_type: default_type_sniffing})
+            sniffing_config = config.get_url_sniffing()
 
-        if url_type in sniffing_config and 'bodytags' in sniffing_config[url_type]:
-            body_tags_to_search = sniffing_config[url_type]['bodytags']
-
-        url_report = sniff_url.get_tags(url=url["url"],metatags_to_search=metatags_to_search, body_tags_to_search=body_tags_to_search)
+        url_report = sniff_url.get_tags(url=url["url"], sniffing_config=sniffing_config[url_type])
     except Exception as e:
-        urls_manager.set_url_error(url=url["url"], value="error")
+        urls_manager.set_url_error(url=url["url"], value="error on scrapping")
         urls_manager.touch_url(url=url["url"])
         if verbose:
             print("\n\n!!! ERROR FOR:", url["url"])
