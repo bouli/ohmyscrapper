@@ -3,9 +3,13 @@ from bs4 import BeautifulSoup
 import json
 
 
-def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=False, sniffing_config={} ):
-    if 'metatags' in sniffing_config:
-        metatags_to_search = sniffing_config['metatags']
+def sniff_url(
+    url="https://www.linkedin.com/in/cesardesouzacardoso/",
+    silent=False,
+    sniffing_config={},
+):
+    if "metatags" in sniffing_config:
+        metatags_to_search = sniffing_config["metatags"]
     else:
         metatags_to_search = [
             "description",
@@ -16,8 +20,8 @@ def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=Fal
             "lnkd:url",
         ]
 
-    if 'bodytags' in sniffing_config:
-        body_tags_to_search = sniffing_config['bodytags']
+    if "bodytags" in sniffing_config:
+        body_tags_to_search = sniffing_config["bodytags"]
     else:
         body_tags_to_search = {
             "h1": "",

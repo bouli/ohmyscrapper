@@ -7,6 +7,7 @@ from ohmyscrapper.core import config
 import time
 import random
 
+
 def scrap_url(url, verbose=False):
     if url["url_type"] is None:
         url["url_type"] = "generic"
@@ -19,11 +20,20 @@ def scrap_url(url, verbose=False):
         sniffing_config = config.get_url_sniffing()
 
         if url_type not in sniffing_config:
-            default_type_sniffing = {'bodytags': [{'h1': 'title'}], 'metatags': [{'og:title': 'title'}, {'og:description': 'description'}, {'description': 'description'}]}
+            default_type_sniffing = {
+                "bodytags": [{"h1": "title"}],
+                "metatags": [
+                    {"og:title": "title"},
+                    {"og:description": "description"},
+                    {"description": "description"},
+                ],
+            }
             config.append_url_sniffing({url_type: default_type_sniffing})
             sniffing_config = config.get_url_sniffing()
 
-        url_report = sniff_url.get_tags(url=url["url"], sniffing_config=sniffing_config[url_type])
+        url_report = sniff_url.get_tags(
+            url=url["url"], sniffing_config=sniffing_config[url_type]
+        )
     except Exception as e:
         urls_manager.set_url_error(url=url["url"], value="error on scrapping")
         urls_manager.touch_url(url=url["url"])
@@ -36,12 +46,18 @@ def scrap_url(url, verbose=False):
             )
         return
 
-    process_sniffed_url(url_report=url_report, url=url, sniffing_config=sniffing_config[url_type], verbose=verbose)
+    process_sniffed_url(
+        url_report=url_report,
+        url=url,
+        sniffing_config=sniffing_config[url_type],
+        verbose=verbose,
+    )
 
     urls_manager.set_url_json(url=url["url"], value=url_report["json"])
     urls_manager.touch_url(url=url["url"])
 
     return
+
 
 def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
     if verbose:
@@ -54,28 +70,38 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
     db_fields["description"] = None
     db_fields["url_destiny"] = None
 
-    if 'metatags' in sniffing_config.keys():
-        for tag, bd_field in sniffing_config['metatags'].items():
+    if "metatags" in sniffing_config.keys():
+        for tag, bd_field in sniffing_config["metatags"].items():
             if tag in url_report.keys():
                 if bd_field[:1] == "+":
                     if db_fields[bd_field[1:]] is None:
                         db_fields[bd_field[1:]] = ""
-                    db_fields[bd_field[1:]] = db_fields[bd_field[1:]] + " " + url_report[tag]
+                    db_fields[bd_field[1:]] = (
+                        db_fields[bd_field[1:]] + " " + url_report[tag]
+                    )
                 else:
                     db_fields[bd_field] = url_report[tag]
 
-    if 'bodytags' in sniffing_config.keys():
-        for tag, bd_field in sniffing_config['bodytags'].items():
+    if "bodytags" in sniffing_config.keys():
+        for tag, bd_field in sniffing_config["bodytags"].items():
             if tag in url_report.keys():
                 if bd_field[:1] == "+":
                     if db_fields[bd_field[1:]] is None:
                         db_fields[bd_field[1:]] = ""
-                    db_fields[bd_field[1:]] = db_fields[bd_field[1:]] + " " + url_report[tag]
+                    db_fields[bd_field[1:]] = (
+                        db_fields[bd_field[1:]] + " " + url_report[tag]
+                    )
                 else:
                     db_fields[bd_field] = url_report[tag]
 
-    if 'atags' in sniffing_config.keys() and 'first-tag-as-url_destiny' in sniffing_config['atags'].keys():
-        if url_report["total-a-links"] < sniffing_config['atags']['first-tag-as-url_destiny']:
+    if (
+        "atags" in sniffing_config.keys()
+        and "first-tag-as-url_destiny" in sniffing_config["atags"].keys()
+    ):
+        if (
+            url_report["total-a-links"]
+            < sniffing_config["atags"]["first-tag-as-url_destiny"]
+        ):
             if "first-a-link" in url_report.keys():
                 db_fields["url_destiny"] = url_report["first-a-link"]
 
@@ -98,7 +124,11 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
         changed = True
 
     if not changed:
-        urls_manager.set_url_error(url=url["url"], value="error: no title, url_destiny or description was founded")
+        urls_manager.set_url_error(
+            url=url["url"],
+            value="error: no title, url_destiny or description was founded",
+        )
+
 
 def isNaN(num):
     return num != num

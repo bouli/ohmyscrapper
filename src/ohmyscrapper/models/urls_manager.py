@@ -52,12 +52,14 @@ def create_tables(conn):
         "CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)"
     )
 
+
 def update_db():
     try:
         c = conn.cursor()
         c.execute("ALTER TABLE urls RENAME COLUMN h1 TO title")
     except:
         pass
+
 
 def seeds(seeds={}):
 
