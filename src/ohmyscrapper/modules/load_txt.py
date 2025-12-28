@@ -48,12 +48,12 @@ def load_txt(file_name="input", verbose=False):
             print(f"📖 reading file `{dir_files}/{text_files[0]}`... ")
             text_file_content = _increment_file_name(
                 text_file_content=text_file_content,
-                file_name=os.path.join(dir_files ,text_files[0]),
+                file_name=os.path.join(dir_files, text_files[0]),
             )
         else:
             print("\nChoose a text file. Use `*` for process all and `q` to quit:")
             for index, file in enumerate(text_files):
-                print(f"[{index}]:", os.path.join(dir_files ,file))
+                print(f"[{index}]:", os.path.join(dir_files, file))
 
             text_file_option = -1
             while text_file_option < 0 or text_file_option >= len(text_files):
@@ -62,7 +62,7 @@ def load_txt(file_name="input", verbose=False):
                     for file in text_files:
                         text_file_content = _increment_file_name(
                             text_file_content=text_file_content,
-                            file_name=os.path.join(dir_files ,file),
+                            file_name=os.path.join(dir_files, file),
                         )
                         text_file_option = 0
                 elif text_file_option == "q":
@@ -72,8 +72,9 @@ def load_txt(file_name="input", verbose=False):
                     if text_file_option >= 0 and text_file_option < len(text_files):
                         text_file_content = _increment_file_name(
                             text_file_content=text_file_content,
-                            file_name=
-                            os.path.join(dir_files ,text_files[int(text_file_option)])
+                            file_name=os.path.join(
+                                dir_files, text_files[int(text_file_option)]
+                            ),
                         )
 
     print("🔎 looking for urls...")

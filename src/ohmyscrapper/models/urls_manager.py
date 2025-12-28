@@ -8,7 +8,7 @@ from ohmyscrapper.core import config
 
 
 def get_db_dir():
-    db_folder = config.get_dir('db')
+    db_folder = config.get_dir("db")
     if not os.path.exists(db_folder):
         os.mkdir(db_folder)
     return db_folder
@@ -16,7 +16,7 @@ def get_db_dir():
 
 def get_db_path():
     db_file = config.get_db()
-    return os.path.join(get_db_dir(),db_file)
+    return os.path.join(get_db_dir(), db_file)
 
 
 def get_db_connection():

@@ -3,6 +3,7 @@ from ohmyscrapper.core import config_files
 
 default_app_dir = "ohmyscrapper"
 
+
 def get_dir(param="ohmyscrapper"):
     parent_param = "default_dirs"
 
@@ -51,23 +52,33 @@ def load_config(force_default=False):
 
     return config_params
 
+
 def url_types_file_exists():
     url_types_file = get_files("url_types")
-    return config_files.config_file_exists(url_types_file,default_app_dir=default_app_dir)
+    return config_files.config_file_exists(
+        url_types_file, default_app_dir=default_app_dir
+    )
+
 
 def get_url_types():
     url_types_file = get_files("url_types")
-    return config_files.create_and_read_config_file(url_types_file,default_app_dir=default_app_dir)
+    return config_files.create_and_read_config_file(
+        url_types_file, default_app_dir=default_app_dir
+    )
+
 
 def append_url_types(url_types):
     url_types_file = get_files("url_types")
-    _append_config_file(url_types , url_types_file)
+    _append_config_file(url_types, url_types_file)
 
-def overwrite_config_file(data ,file_name):
-    config_files.overwrite_config_file(data ,file_name, default_app_dir=default_app_dir)
 
-def _append_config_file(data ,file_name):
-    config_files.append_config_file(data ,file_name, default_app_dir=default_app_dir)
+def overwrite_config_file(data, file_name):
+    config_files.overwrite_config_file(data, file_name, default_app_dir=default_app_dir)
+
+
+def _append_config_file(data, file_name):
+    config_files.append_config_file(data, file_name, default_app_dir=default_app_dir)
+
 
 def update():
     legacy_folder = "./customize"

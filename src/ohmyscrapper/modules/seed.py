@@ -1,6 +1,7 @@
 import ohmyscrapper.models.urls_manager as urls_manager
 from ohmyscrapper.core import config
 
+
 def seed():
     if not config.url_types_file_exists():
         db_url_types = urls_manager.get_urls_valid_prefix()
