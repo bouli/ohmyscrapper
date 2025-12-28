@@ -10,6 +10,7 @@ default_dirs:
 
 default_files:
   url_types: url_types.yaml
+  url_sniffing: url_sniffing.yaml
 
 ai:
   default_prompt_file: prompt.md

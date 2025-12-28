@@ -3,39 +3,52 @@ from bs4 import BeautifulSoup
 import json
 
 
-def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=False):
+def sniff_url(url="https://www.linkedin.com/in/cesardesouzacardoso/", silent=False, metatags_to_search=None, body_tags_to_search=None ):
     if not silent:
         print("checking url:", url)
 
     r = requests.get(url=url)
     soup = BeautifulSoup(r.text, "html.parser")
+    if metatags_to_search is None:
+        metatags_to_search = [
+            "description",
+            "og:url",
+            "og:title",
+            "og:description",
+            "og:type",
+            "lnkd:url",
+        ]
 
-    metatags_to_search = [
-        "description",
-        "og:url",
-        "og:title",
-        "og:description",
-        "og:type",
-        "lnkd:url",
-    ]
+    if type(metatags_to_search) is dict:
+        metatags_to_search = list(metatags_to_search.keys())
 
-    text_tags_to_search = {
-        "h1": "",
-        "h2": "|",
-    }
+    if body_tags_to_search is None:
+        body_tags_to_search = {
+            "h1": "",
+            "h2": "",
+        }
+    # force clean concatenate without any separator
+    if type(body_tags_to_search) is dict:
+        body_tags_to_search = list(body_tags_to_search.keys())
+
+    if type(body_tags_to_search) is list:
+        body_tags_to_search = dict.fromkeys(body_tags_to_search, " ")
 
     final_report = {}
     final_report["scrapped-url"] = url
-    final_report.update(
-        _extract_meta_tags(
-            soup=soup, silent=silent, metatags_to_search=metatags_to_search
+    if len(metatags_to_search) > 0:
+        final_report.update(
+            _extract_meta_tags(
+                soup=soup, silent=silent, metatags_to_search=metatags_to_search
+            )
         )
-    )
-    final_report.update(
-        _extract_text_tags(
-            soup=soup, silent=silent, text_tags_to_search=text_tags_to_search
+
+    if len(body_tags_to_search) > 0:
+        final_report.update(
+            _extract_text_tags(
+                soup=soup, silent=silent, body_tags_to_search=body_tags_to_search
+            )
         )
-    )
     final_report["a_links"] = _extract_a_tags(soup=soup, silent=silent)
     final_report = _complementary_report(final_report, soup, silent).copy()
     final_report["json"] = json.dumps(final_report)
@@ -85,12 +98,12 @@ def _extract_meta_tags(soup, silent, metatags_to_search):
     return valid_meta_tags
 
 
-def _extract_text_tags(soup, silent, text_tags_to_search):
+def _extract_text_tags(soup, silent, body_tags_to_search):
     valid_text_tags = {}
     if not silent:
         print("\n\n\n\n---- all <text> tags ---\n")
     i = 0
-    for text_tag, separator in text_tags_to_search.items():
+    for text_tag, separator in body_tags_to_search.items():
         if len(soup.find_all(text_tag)) > 0:
             valid_text_tags[text_tag] = []
             for obj_tag in soup.find_all(text_tag):
@@ -128,5 +141,5 @@ def _complementary_report(final_report, soup, silent):
     return final_report
 
 
-def get_tags(url):
-    return sniff_url(url=url, silent=True)
+def get_tags(url, metatags_to_search=None, body_tags_to_search=None):
+    return sniff_url(url=url, silent=True, metatags_to_search=metatags_to_search, body_tags_to_search=body_tags_to_search)

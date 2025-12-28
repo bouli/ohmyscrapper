@@ -1,0 +1,23 @@
+linkedin_feed:
+  metatags:
+  - og:url
+
+linkedin_job:
+  bodytags:
+  - h1
+  metatags:
+  - og:title
+  - og:description
+  - description
+
+linkedin_post:
+  bodytags:
+  - h1
+  metatags:
+  - og:title
+  - og:description
+  - description
+
+linkedin_redirect:
+  metatags:
+  - og:url
