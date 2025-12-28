@@ -28,13 +28,13 @@ def process_ai_response(response):
             url_parent = urls_manager.get_url_by_id(url_child_xml["id"])
             if len(url_parent) > 0:
                 url_parent = url_parent.iloc[0]
-            h1 = url_child_xml.copy()
-            del h1["id"]
-            del h1["url"]
-            h1 = " - ".join(h1.values())
+            title = url_child_xml.copy()
+            del title["id"]
+            del title["url"]
+            title = " - ".join(title.values())
             if url_parent["description_links"] > 1 and url_child_xml["id"] != "":
-                print("-- child updated -- \n", url_child_xml["url"], ":", h1)
-                urls_manager.set_url_h1(url_child_xml["url"], h1)
+                print("-- child updated -- \n", url_child_xml["url"], ":", title)
+                urls_manager.set_url_title(url_child_xml["url"], title)
                 urls_manager.set_url_ai_processed_by_url(
                     url_child_xml["url"], str(json.dumps(url_child_xml))
                 )
@@ -43,8 +43,8 @@ def process_ai_response(response):
                         url_parent["url"], "children-update"
                     )
             else:
-                print("-- parent updated -- \n", url_parent["url"], ":", h1)
-                urls_manager.set_url_h1(url_parent["url"], h1)
+                print("-- parent updated -- \n", url_parent["url"], ":", title)
+                urls_manager.set_url_title(url_parent["url"], title)
                 urls_manager.set_url_ai_processed_by_url(
                     url_parent["url"], str(json.dumps(url_child_xml))
                 )

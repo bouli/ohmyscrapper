@@ -29,7 +29,11 @@ def use_connection(func):
     def provide_connection(*args, **kwargs):
         global conn
         with get_db_connection() as conn:
-            return func(*args, **kwargs)
+            try:
+                return func(*args, **kwargs)
+            except:
+                update_db()
+                return func(*args, **kwargs)
 
     return provide_connection
 
@@ -38,7 +42,7 @@ def create_tables(conn):
 
     c = conn.cursor()
     c.execute(
-        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_url TEXT, url TEXT UNIQUE, url_destiny TEXT, h1 TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, json_ai TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
+        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_url TEXT, url TEXT UNIQUE, url_destiny TEXT, title TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, json_ai TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
     )
     c.execute(
         "CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, prompt_file STRING, prompt_name STRING, created_at DATETIME)"
@@ -48,6 +52,12 @@ def create_tables(conn):
         "CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)"
     )
 
+def update_db():
+    try:
+        c = conn.cursor()
+        c.execute("ALTER TABLE urls RENAME COLUMN h1 TO title")
+    except:
+        pass
 
 def seeds(seeds={}):
 
@@ -118,7 +128,7 @@ def get_urls_report():
         SELECT
             u.id,
             u.url,
-            u.h1
+            u.title
             FROM urls u
                 INNER JOIN parent_url p
                     ON u.url = p.parent_url
@@ -127,9 +137,9 @@ def get_urls_report():
         u.id,
         u.url_type,
         u.url,
-        COALESCE(u.h1, p.h1) as h1,
+        COALESCE(u.title, p.title) as title,
         p.url as parent_url,
-        p.h1 as parent_h1
+        p.title as parent_title
         FROM urls u
         LEFT JOIN parents p
             ON u.parent_url = p.url
@@ -185,12 +195,12 @@ def get_url_like_unclassified(like_condition):
 
 
 @use_connection
-def add_url(url, h1=None, parent_url=None):
+def add_url(url, title=None, parent_url=None):
     url = clean_url(url)
     c = conn.cursor()
 
-    if h1 is not None:
-        h1 = h1.strip()
+    if title is not None:
+        title = title.strip()
 
     if parent_url is None:
         parent_url = None
@@ -199,8 +209,8 @@ def add_url(url, h1=None, parent_url=None):
 
     if len(get_url_by_url(url)) == 0:
         c.execute(
-            "INSERT INTO urls (url, h1, parent_url, created_at, ai_processed, description_links, history) VALUES (?, ?, ?, ?, 0, 0, 0)",
-            (url, h1, parent_url, int(time.time())),
+            "INSERT INTO urls (url, title, parent_url, created_at, ai_processed, description_links, history) VALUES (?, ?, ?, ?, 0, 0, 0)",
+            (url, title, parent_url, int(time.time())),
         )
         conn.commit()
 
@@ -239,20 +249,20 @@ def set_url_destiny(url, destiny):
 
 
 @use_connection
-def set_url_h1(url, value):
+def set_url_title(url, value):
     value = str(value).strip()
     url = clean_url(url)
     c = conn.cursor()
-    c.execute("UPDATE urls SET h1 = ? WHERE url = ?", (value, url))
+    c.execute("UPDATE urls SET title = ? WHERE url = ?", (value, url))
     conn.commit()
 
 
 @use_connection
-def set_url_h1_by_id(id, value):
+def set_url_title_by_id(id, value):
     value = str(value).strip()
 
     c = conn.cursor()
-    c.execute("UPDATE urls SET h1 = ? WHERE id = ?", (value, id))
+    c.execute("UPDATE urls SET title = ? WHERE id = ?", (value, id))
     conn.commit()
 
 
@@ -427,16 +437,16 @@ def merge_dbs() -> None:
 
 
 @use_connection
-def merge_url(url, h1, last_touch, created_at, description, json):
+def merge_url(url, title, last_touch, created_at, description, json):
     url = clean_url(url)
     c = conn.cursor()
 
-    if h1 is not None:
-        h1 = h1.strip()
+    if title is not None:
+        title = title.strip()
 
     if len(get_url_by_url(url)) == 0:
         c.execute(
-            "INSERT INTO urls (url, h1, last_touch , created_at, history, ai_processed, description_links, description, json) VALUES (?, ?, ?, ?, 1, 0, 0, ? , ?)",
-            (url, h1, last_touch, created_at, description, json),
+            "INSERT INTO urls (url, title, last_touch , created_at, history, ai_processed, description_links, description, json) VALUES (?, ?, ?, ?, 1, 0, 0, ? , ?)",
+            (url, title, last_touch, created_at, description, json),
         )
         conn.commit()

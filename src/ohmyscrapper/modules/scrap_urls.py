@@ -59,12 +59,12 @@ def process_linkedin_job(url_report, url, verbose=False):
     if "h1" in url_report.keys():
         if verbose:
             print(url["url"], ": ", url_report["h1"])
-        urls_manager.set_url_h1(url=url["url"], value=url_report["h1"])
+        urls_manager.set_url_title(url=url["url"], value=url_report["h1"])
         changed = True
     elif "og:title" in url_report.keys():
         if verbose:
             print(url["url"], ": ", url_report["og:title"])
-        urls_manager.set_url_h1(url=url["url"], value=url_report["og:title"])
+        urls_manager.set_url_title(url=url["url"], value=url_report["og:title"])
         changed = True
 
     if "description" in url_report.keys():
@@ -78,7 +78,7 @@ def process_linkedin_job(url_report, url, verbose=False):
         )
         changed = True
     if not changed:
-        urls_manager.set_url_error(url=url["url"], value="error: no h1 or description")
+        urls_manager.set_url_error(url=url["url"], value="error: no title or description")
 
 
 def process_linkedin_post(url_report, url, verbose=False):
@@ -89,10 +89,10 @@ def process_linkedin_post(url_report, url, verbose=False):
     if "h1" in url_report.keys():
         if verbose:
             print(url["url"], ": ", url_report["h1"])
-        urls_manager.set_url_h1(url=url["url"], value=url_report["h1"])
+        urls_manager.set_url_title(url=url["url"], value=url_report["h1"])
         changed = True
     elif "og:title" in url_report.keys():
-        urls_manager.set_url_h1(url=url["url"], value=url_report["og:title"])
+        urls_manager.set_url_title(url=url["url"], value=url_report["og:title"])
         changed = True
     description = None
     if "description" in url_report.keys():
@@ -110,7 +110,7 @@ def process_linkedin_post(url_report, url, verbose=False):
         urls_manager.set_url_description_links(url=url["url"], value=description_links)
 
     if not changed:
-        urls_manager.set_url_error(url=url["url"], value="error: no h1 or description")
+        urls_manager.set_url_error(url=url["url"], value="error: no title or description")
 
 
 def scrap_url(url, verbose=False):
