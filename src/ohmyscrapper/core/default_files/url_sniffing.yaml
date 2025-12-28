@@ -21,3 +21,5 @@ linkedin_post:
 linkedin_redirect:
   metatags:
     og:url: url_destiny
+  atags:
+    first-tag-as-url_destiny: 5

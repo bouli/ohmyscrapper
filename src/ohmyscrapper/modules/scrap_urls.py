@@ -7,122 +7,13 @@ from ohmyscrapper.core import config
 import time
 import random
 
-
-def process_linkedin_redirect(url_report, url, verbose=False):
-    if verbose:
-        print("linkedin_redirect")
-
-    if url_report["total-a-links"] < 5:
-        if "first-a-link" in url_report.keys():
-            url_destiny = url_report["first-a-link"]
-        else:
-            urls_manager.set_url_error(url=url["url"], value="error: no first-a-link")
-            if verbose:
-                print("no url for:", url["url"])
-            return
-    else:
-        if "og:url" in url_report.keys():
-            url_destiny = url_report["og:url"]
-        else:
-            urls_manager.set_url_error(url=url["url"], value="error: no og:url")
-            if verbose:
-                print("no url for:", url["url"])
-            return
-    if verbose:
-        print(url["url"], ">>", url_destiny)
-    urls_manager.add_url(url=url_destiny)
-    urls_manager.set_url_destiny(url=url["url"], destiny=url_destiny)
-
-
-def process_linkedin_feed(url_report, url, verbose=False):
-    if verbose:
-        print("linkedin_feed")
-
-    if "og:url" in url_report.keys():
-        url_destiny = url_report["og:url"]
-    else:
-        urls_manager.set_url_error(url=url["url"], value="error: no og:url")
-        if verbose:
-            print("no url for:", url["url"])
-        return
-
-    if verbose:
-        print(url["url"], ">>", url_destiny)
-    urls_manager.add_url(url=url_destiny)
-    urls_manager.set_url_destiny(url=url["url"], destiny=url_destiny)
-
-
-def process_linkedin_job(url_report, url, verbose=False):
-    if verbose:
-        print("linkedin_job")
-    changed = False
-    if "h1" in url_report.keys():
-        if verbose:
-            print(url["url"], ": ", url_report["h1"])
-        urls_manager.set_url_title(url=url["url"], value=url_report["h1"])
-        changed = True
-    elif "og:title" in url_report.keys():
-        if verbose:
-            print(url["url"], ": ", url_report["og:title"])
-        urls_manager.set_url_title(url=url["url"], value=url_report["og:title"])
-        changed = True
-
-    if "description" in url_report.keys():
-        urls_manager.set_url_description(
-            url=url["url"], value=url_report["description"]
-        )
-        changed = True
-    elif "og:description" in url_report.keys():
-        urls_manager.set_url_description(
-            url=url["url"], value=url_report["og:description"]
-        )
-        changed = True
-    if not changed:
-        urls_manager.set_url_error(url=url["url"], value="error: no title or description")
-
-
-def process_linkedin_post(url_report, url, verbose=False):
-    if verbose:
-        print("linkedin_post or generic")
-        print(url["url"])
-    changed = False
-    if "h1" in url_report.keys():
-        if verbose:
-            print(url["url"], ": ", url_report["h1"])
-        urls_manager.set_url_title(url=url["url"], value=url_report["h1"])
-        changed = True
-    elif "og:title" in url_report.keys():
-        urls_manager.set_url_title(url=url["url"], value=url_report["og:title"])
-        changed = True
-    description = None
-    if "description" in url_report.keys():
-        description = url_report["description"]
-        changed = True
-    elif "og:description" in url_report.keys():
-        description = url_report["og:description"]
-        changed = True
-
-    if description is not None:
-        urls_manager.set_url_description(url=url["url"], value=description)
-        description_links = load_txt.put_urls_from_string(
-            text_to_process=description, parent_url=url["url"]
-        )
-        urls_manager.set_url_description_links(url=url["url"], value=description_links)
-
-    if not changed:
-        urls_manager.set_url_error(url=url["url"], value="error: no title or description")
-
-
 def scrap_url(url, verbose=False):
-    # TODO: Need to change this
-
     if url["url_type"] is None:
-        if verbose:
-            print("\n\ngeneric:", url["url"])
         url["url_type"] = "generic"
-    else:
-        if verbose:
-            print("\n\n", url["url_type"] + ":", url["url"])
+
+    if verbose:
+        print("\n\n", url["url_type"] + ":", url["url"])
+
     try:
         url_type = url["url_type"]
         sniffing_config = config.get_url_sniffing()
@@ -145,21 +36,69 @@ def scrap_url(url, verbose=False):
             )
         return
 
-    if url["url_type"] == "linkedin_redirect":
-        process_linkedin_redirect(url_report=url_report, url=url, verbose=verbose)
-
-    if url["url_type"] == "linkedin_feed":
-        process_linkedin_feed(url_report=url_report, url=url, verbose=verbose)
-
-    if url["url_type"] == "linkedin_job":
-        process_linkedin_job(url_report=url_report, url=url, verbose=verbose)
-
-    if url["url_type"] == "linkedin_post" or url["url_type"] == "generic":
-        process_linkedin_post(url_report=url_report, url=url, verbose=verbose)
+    process_sniffed_url(url_report=url_report, url=url, sniffing_config=sniffing_config[url_type], verbose=verbose)
 
     urls_manager.set_url_json(url=url["url"], value=url_report["json"])
     urls_manager.touch_url(url=url["url"])
 
+    return
+
+def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
+    if verbose:
+        print(url["url_type"])
+        print(url["url"])
+    changed = False
+
+    db_fields = {}
+    db_fields["title"] = None
+    db_fields["description"] = None
+    db_fields["url_destiny"] = None
+
+    if 'metatags' in sniffing_config.keys():
+        for tag, bd_field in sniffing_config['metatags'].items():
+            if tag in url_report.keys():
+                if bd_field[:1] == "+":
+                    if db_fields[bd_field[1:]] is None:
+                        db_fields[bd_field[1:]] = ""
+                    db_fields[bd_field[1:]] = db_fields[bd_field[1:]] + " " + url_report[tag]
+                else:
+                    db_fields[bd_field] = url_report[tag]
+
+    if 'bodytags' in sniffing_config.keys():
+        for tag, bd_field in sniffing_config['bodytags'].items():
+            if tag in url_report.keys():
+                if bd_field[:1] == "+":
+                    if db_fields[bd_field[1:]] is None:
+                        db_fields[bd_field[1:]] = ""
+                    db_fields[bd_field[1:]] = db_fields[bd_field[1:]] + " " + url_report[tag]
+                else:
+                    db_fields[bd_field] = url_report[tag]
+
+    if 'atags' in sniffing_config.keys() and 'first-tag-as-url_destiny' in sniffing_config['atags'].keys():
+        if url_report["total-a-links"] < sniffing_config['atags']['first-tag-as-url_destiny']:
+            if "first-a-link" in url_report.keys():
+                db_fields["url_destiny"] = url_report["first-a-link"]
+
+    if db_fields["title"] is not None:
+        urls_manager.set_url_title(url=url["url"], value=db_fields["title"])
+        changed = True
+
+    if db_fields["description"] is not None:
+        urls_manager.set_url_description(url=url["url"], value=db_fields["description"])
+        description_links = load_txt.put_urls_from_string(
+            text_to_process=db_fields["description"], parent_url=url["url"]
+        )
+        urls_manager.set_url_description_links(url=url["url"], value=description_links)
+
+        changed = True
+
+    if db_fields["url_destiny"] is not None:
+        urls_manager.add_url(url=db_fields["url_destiny"])
+        urls_manager.set_url_destiny(url=url["url"], destiny=db_fields["url_destiny"])
+        changed = True
+
+    if not changed:
+        urls_manager.set_url_error(url=url["url"], value="error: no title, url_destiny or description was founded")
 
 def isNaN(num):
     return num != num
