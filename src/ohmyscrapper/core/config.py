@@ -1,75 +1,84 @@
-import yaml
 import os
+from ohmyscrapper.core import config_files
+
+default_app_dir = "ohmyscrapper"
 
 def get_dir(param="ohmyscrapper"):
-    parent_param = 'default_dirs'
+    parent_param = "default_dirs"
 
-    if param == "ohmyscrapper":
+    if param == default_app_dir:
         folder = "./" + param
     else:
-        folder = get_param(parent_param, param)
+        folder = config_files.get_param(
+            parent_param=parent_param, param=param, default_app_dir=default_app_dir
+        )
     if not os.path.exists(folder):
         os.mkdir(folder)
     return folder
 
+
 def get_files(param):
-    parent_param = 'default_files'
-    return get_param(parent_param, param)
+    parent_param = "default_files"
+    return config_files.get_param(
+        parent_param=parent_param, param=param, default_app_dir=default_app_dir
+    )
+
 
 def get_db(param="db_file"):
-    if param == 'folder':
-        return get_dir(param='db')
-    return get_param(parent_param = 'db', param=param)
+    if param == "folder":
+        return get_dir(param="db")
+    return config_files.get_param(
+        parent_param="db", param=param, default_app_dir=default_app_dir
+    )
+
 
 def get_ai(param):
-    return get_param(parent_param = 'ai', param=param)
+    return config_files.get_param(
+        parent_param="ai", param=param, default_app_dir=default_app_dir
+    )
+
 
 def load_config(force_default=False):
     config_file_name = "config.yaml"
-    config_params = create_and_read_config_file(file_name=config_file_name, force_default=force_default)
+    config_params = config_files.create_and_read_config_file(
+        file_name=config_file_name,
+        default_app_dir=default_app_dir,
+        force_default=force_default,
+    )
 
     if config_params is None or "default_dirs" not in config_params:
         config_params = load_config(force_default=True)
 
     return config_params
 
-def create_and_read_config_file(file_name, force_default=False):
-    customize_folder = "ohmyscrapper"
-    if not os.path.exists(customize_folder):
-        os.mkdir(customize_folder)
+def url_types_file_exists():
+    url_types_file = get_files("url_types")
+    return config_files.config_file_exists(url_types_file,default_app_dir=default_app_dir)
 
-    config_file = os.path.join(customize_folder, file_name)
-    if force_default or not os.path.exists(config_file):
-        with open(config_file, "+w") as f:
-            config_params = get_default_file(default_file=file_name)
-            f.write(yaml.safe_dump(config_params))
-    else:
-        with open(config_file, "r") as f:
-            config_params = yaml.safe_load(f.read())
-    return config_params
+def get_url_types():
+    url_types_file = get_files("url_types")
+    return config_files.create_and_read_config_file(url_types_file,default_app_dir=default_app_dir)
 
-def get_param(parent_param, param):
-    default_dirs = load_config()[parent_param]
-    if param in default_dirs:
-        return default_dirs[param]
-    else:
-        raise Exception(f"{param} do not exist in your params {parent_param}.")
+def append_url_types(url_types):
+    url_types_file = get_files("url_types")
+    _append_config_file(url_types , url_types_file)
 
-def get_default_file(default_file):
-    default_files_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),'default_files')
-    default_file = os.path.join(default_files_dir, default_file)
-    with open(default_file, "r") as f:
-        return yaml.safe_load(f.read())
+def overwrite_config_file(data ,file_name):
+    config_files.overwrite_config_file(data ,file_name, default_app_dir=default_app_dir)
 
+def _append_config_file(data ,file_name):
+    config_files.append_config_file(data ,file_name, default_app_dir=default_app_dir)
 
 def update():
     legacy_folder = "./customize"
     new_folder = "./ohmyscrapper"
     if os.path.exists(legacy_folder) and not os.path.exists(new_folder):
-        yes_no = input("We detected a legacy folder system for your OhMyScrapper, would you like to update? \n" \
-        "If you don't update, a new version will be used and your legacy folder will be ignored. \n" \
-        "[Y] for yes or  any other thing to ignore: ")
+        yes_no = input(
+            "We detected a legacy folder system for your OhMyScrapper, would you like to update? \n"
+            "If you don't update, a new version will be used and your legacy folder will be ignored. \n"
+            "[Y] for yes or  any other thing to ignore: "
+        )
         if yes_no == "Y":
-            os.rename(legacy_folder,new_folder)
+            os.rename(legacy_folder, new_folder)
         print(" You are up-to-date! =)")
         print("")
