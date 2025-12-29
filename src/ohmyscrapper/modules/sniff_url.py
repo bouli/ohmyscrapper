@@ -119,13 +119,13 @@ def _extract_text_tags(soup, silent, body_tags_to_search):
             for obj_tag in soup.find_all(text_tag):
                 valid_text_tags[text_tag].append(obj_tag.text.strip())
             valid_text_tags[text_tag] = separator.join(valid_text_tags[text_tag])
-        i = i + 1
-        if not silent:
-            print("-- text tag", i, "--")
-            print("name:", text_tag)
-            print("separator:", separator)
-            print("texts:", valid_text_tags[text_tag])
-            print("---------------- \n")
+            i = i + 1
+            if not silent:
+                print("-- text tag", i, "--")
+                print("name:", text_tag)
+                print("separator:", separator)
+                print("texts:", valid_text_tags[text_tag])
+                print("---------------- \n")
     return valid_text_tags
 
 
