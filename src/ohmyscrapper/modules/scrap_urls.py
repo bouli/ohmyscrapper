@@ -104,6 +104,12 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
         ):
             if "first-a-link" in url_report.keys():
                 db_fields["url_destiny"] = url_report["first-a-link"]
+    if (
+        "atags" in sniffing_config.keys()
+        and "load_links" in sniffing_config["atags"].keys()
+    ):
+        for a_link in url_report['a_links']:
+            urls_manager.add_url(url=a_link['href'], parent_url=url["url"])
 
     if db_fields["title"] is not None:
         urls_manager.set_url_title(url=url["url"], value=db_fields["title"])

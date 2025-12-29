@@ -23,3 +23,7 @@ linkedin_redirect:
     og:url: url_destiny
   atags:
     first-tag-as-url_destiny: 5
+
+read_all_a_tags:
+  atags:
+    load_atags: True

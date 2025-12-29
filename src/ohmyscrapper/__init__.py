@@ -191,6 +191,7 @@ def main():
         return
 
     if args.command == "start":
+        seed()
         if args.input != None:
             load_txt(file_name=args.input)
         else:
