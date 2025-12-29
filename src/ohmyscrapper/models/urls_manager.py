@@ -198,7 +198,7 @@ def get_url_like_unclassified(like_condition):
 
 @use_connection
 def add_url(url, title=None, parent_url=None):
-    if url[:1]=="/":
+    if url[:1] == "/":
         return
     url = clean_url(url)
     c = conn.cursor()
@@ -342,7 +342,9 @@ def set_url_error(url, value):
 @use_connection
 def set_url_type_by_id(url_id, url_type):
     c = conn.cursor()
-    c.execute(f"UPDATE urls SET url_type = '{url_type}', last_touch = NULL WHERE id = {url_id}")
+    c.execute(
+        f"UPDATE urls SET url_type = '{url_type}', last_touch = NULL WHERE id = {url_id}"
+    )
     conn.commit()
 
 
