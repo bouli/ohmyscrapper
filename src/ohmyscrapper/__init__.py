@@ -28,6 +28,9 @@ def main():
         "start",
         help="Make the entire process of 📦 loading, 🐶 scraping and 📜🖋️ exporting with the default configuration.",
     )
+    start_parser.add_argument(
+        "-input", default=None, help="File/Folder path or url for pre-loading."
+    )
 
     start_parser.add_argument(
         "--ai",
@@ -84,6 +87,9 @@ def main():
     )
     scrap_urls_parser.add_argument(
         "--verbose", default=False, help="Run in verbose mode", action="store_true"
+    )
+    scrap_urls_parser.add_argument(
+        "-input", default=None, help="File/Folder path or url for pre-loading."
     )
 
     sniff_url_parser = subparsers.add_parser("sniff-url", help="🐕 Sniff/Check url")
@@ -143,6 +149,9 @@ def main():
         return
 
     if args.command == "scrap-urls":
+        if args.input != None:
+            load_txt(file_name=args.input,verbose=args.verbose)
+
         scrap_urls(
             recursive=args.recursive,
             ignore_valid_prefix=args.ignore_type,
@@ -182,7 +191,11 @@ def main():
         return
 
     if args.command == "start":
-        load_txt()
+        if args.input != None:
+            load_txt(file_name=args.input)
+        else:
+            load_txt()
+
         scrap_urls(
             recursive=True,
             ignore_valid_prefix=True,
