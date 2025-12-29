@@ -20,7 +20,7 @@ from ohmyscrapper.core.config import update
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.7.0")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.7.1")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -150,7 +150,7 @@ def main():
 
     if args.command == "scrap-urls":
         if args.input != None:
-            load_txt(file_name=args.input,verbose=args.verbose)
+            load_txt(file_name=args.input, verbose=args.verbose)
 
         scrap_urls(
             recursive=args.recursive,
