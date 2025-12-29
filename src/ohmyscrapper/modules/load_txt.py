@@ -23,6 +23,7 @@ def load_txt(file_name="input", verbose=False):
         if not os.path.exists(file_name):
             if file_name.startswith("https://") or file_name.startswith("http://"):
                 text_file_content = " " + file_name + " "
+                urls_manager.untouch_url(url=file_name)
             else:
                 print(f"\n file `{file_name}` not found.")
                 return

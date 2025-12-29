@@ -392,8 +392,10 @@ def touch_url(url):
 @use_connection
 def untouch_url(url):
     url = clean_url(url)
+    url = str(url.strip())
+
     c = conn.cursor()
-    c.execute("UPDATE urls SET last_touch = NULL WHERE url = ?", (url))
+    c.execute(f"UPDATE urls SET last_touch = NULL WHERE url = '{url}'")
     conn.commit()
 
 
