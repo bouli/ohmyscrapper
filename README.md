@@ -1,4 +1,4 @@
-# 🐶 OhMyScrapper - v0.7.1
+# 🐶 OhMyScrapper - v0.7.2
 
 OhMyScrapper scrapes texts and urls looking for links and jobs-data to create a
 final report with general information about job positions.
