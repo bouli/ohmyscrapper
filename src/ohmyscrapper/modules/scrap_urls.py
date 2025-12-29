@@ -21,12 +21,12 @@ def scrap_url(url, verbose=False):
 
         if url_type not in sniffing_config:
             default_type_sniffing = {
-                "bodytags": [{"h1": "title"}],
-                "metatags": [
-                    {"og:title": "title"},
-                    {"og:description": "description"},
-                    {"description": "description"},
-                ],
+                "bodytags": {"h1": "title"},
+                "metatags": {
+                    "og:title": "title",
+                    "og:description": "description",
+                    "description": "description",
+                },
             }
             config.append_url_sniffing({url_type: default_type_sniffing})
             sniffing_config = config.get_url_sniffing()
