@@ -53,6 +53,14 @@ def main():
         help="Add all `url_types` from the bank to the `/ohmyscrapper/url_types.yaml` file.",
         action="store_true",
     )
+
+    seed_parser.add_argument(
+        "--reset",
+        default=False,
+        help="Reset all `url_types`.",
+        action="store_true",
+    )
+
     untouch_parser = subparsers.add_parser(
         "untouch-all", help="Untouch all urls. That resets classification"
     )
@@ -137,7 +145,7 @@ def main():
         if args.export:
             export_url_types_to_file()
         else:
-            seed()
+            seed(args.reset)
         return
 
     if args.command == "untouch-all":

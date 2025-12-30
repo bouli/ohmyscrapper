@@ -68,6 +68,12 @@ def seeds(seeds={}):
 
     return True
 
+@use_connection
+def reset_seeds():
+    sql = "DELETE FROM urls_valid_prefix"
+    c = conn.cursor()
+    c.execute(sql)
+    conn.commit()
 
 @use_connection
 def add_urls_valid_prefix(url_prefix, url_type):

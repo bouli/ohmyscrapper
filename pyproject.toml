@@ -1,6 +1,7 @@
 [project]
 name = "ohmyscrapper"
 version = "0.7.2"
+license = "MIT"
 description = "OhMyScrapper scrapes texts and urls looking for links and jobs-data to create a final report with general information about job positions."
 readme = "README.md"
 authors = [
