@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+from ohmyscrapper.core import config
 
 
 def sniff_url(
@@ -8,6 +9,8 @@ def sniff_url(
     silent=False,
     sniffing_config={},
 ):
+    final_report = {}
+    final_report['error'] = None
     if "metatags" in sniffing_config:
         metatags_to_search = sniffing_config["metatags"]
     else:
@@ -41,10 +44,15 @@ def sniff_url(
     if not silent:
         print("checking url:", url)
 
-    r = requests.get(url=url)
-    soup = BeautifulSoup(r.text, "html.parser")
+    try:
+        r = requests.get(url=url, timeout=config.get_sniffing("timeout"))
+        soup = BeautifulSoup(r.text, "html.parser")
+    except requests.exceptions.ReadTimeout:
+        url_domain = url.split("/")[2]
+        final_report['error'] = f"!!! timeout (10 seconds) while checking the url with domain: `{url_domain}` !!!"
+        print (f"\n\n{final_report['error']}\n\n")
+        soup = BeautifulSoup("", "html.parser")
 
-    final_report = {}
     final_report["scrapped-url"] = url
     if len(metatags_to_search) > 0:
         final_report.update(

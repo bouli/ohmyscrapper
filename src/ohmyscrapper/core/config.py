@@ -38,6 +38,11 @@ def get_ai(param):
         parent_param="ai", param=param, default_app_dir=default_app_dir
     )
 
+def get_sniffing(param):
+    return config_files.get_param(
+        parent_param="sniffing", param=param, default_app_dir=default_app_dir
+    )
+
 
 def load_config(force_default=False):
     config_file_name = "config.yaml"

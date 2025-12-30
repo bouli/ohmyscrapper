@@ -14,3 +14,6 @@ default_files:
 
 ai:
   default_prompt_file: prompt.md
+
+sniffing:
+  timeout: 10
