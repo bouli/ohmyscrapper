@@ -34,7 +34,7 @@ build-backend = "uv_build"
 [tool.bumpversion]
 tag = true
 tag_name = "v{new_version}"
-pre_commit_hooks = ["uvx black ./src", "git add src", "git commit -m 'chore: Beautify with black'", "uv sync --upgrade", "git add uv.lock"]
+pre_commit_hooks = ["uvx black ./src", "git add src", "uv sync --upgrade", "git add uv.lock"]
 commit = true
 
 [[tool.bumpversion.files]]
