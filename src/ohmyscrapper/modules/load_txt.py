@@ -59,7 +59,9 @@ def load_txt(file_name="input", verbose=False):
 
             text_file_option = -1
             while text_file_option < 0 or text_file_option >= len(text_files):
-                text_file_option = input("Choose a text file. Use `*` for process all and `q` to quit. Enter the file number: ")
+                text_file_option = input(
+                    "Choose a text file. Use `*` for process all and `q` to quit. Enter the file number: "
+                )
                 if text_file_option == "*":
                     for file in text_files:
                         text_file_content = _increment_file_name(
