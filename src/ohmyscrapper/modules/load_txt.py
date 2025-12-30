@@ -19,15 +19,16 @@ def load_txt(file_name="input", verbose=False):
 
     text_file_content = ""
     if file_name is not None and not os.path.isdir(file_name):
-        print(f"📖 reading file `{file_name}`... ")
         if not os.path.exists(file_name):
             if file_name.startswith("https://") or file_name.startswith("http://"):
+                print(f"📖 reading url `{file_name}`... ")
                 text_file_content = " " + file_name + " "
                 urls_manager.untouch_url(url=file_name)
             else:
                 print(f"\n file `{file_name}` not found.")
                 return
         else:
+            print(f"📖 reading file `{file_name}`... ")
             text_file_content = _increment_file_name(
                 text_file_content=text_file_content, file_name=file_name
             )
@@ -52,13 +53,13 @@ def load_txt(file_name="input", verbose=False):
                 file_name=os.path.join(dir_files, text_files[0]),
             )
         else:
-            print("\nChoose a text file. Use `*` for process all and `q` to quit:")
+            print("\nFiles list:")
             for index, file in enumerate(text_files):
                 print(f"[{index}]:", os.path.join(dir_files, file))
 
             text_file_option = -1
             while text_file_option < 0 or text_file_option >= len(text_files):
-                text_file_option = input("Enter the file number: ")
+                text_file_option = input("Choose a text file. Use `*` for process all and `q` to quit. Enter the file number: ")
                 if text_file_option == "*":
                     for file in text_files:
                         text_file_content = _increment_file_name(
