@@ -4,20 +4,32 @@ import yaml
 
 def create_and_read_config_file(file_name, default_app_dir, force_default=False):
     config_file = config_file_path(file_name, default_app_dir)
+    default_config_params = _get_default_file(default_file=file_name)
     if force_default or not os.path.exists(config_file):
-        config_params = _get_default_file(default_file=file_name)
         overwrite_config_file(
-            data=config_params, file_name=file_name, default_app_dir=default_app_dir
+            data=default_config_params, file_name=file_name, default_app_dir=default_app_dir
         )
+        config_params = default_config_params
     else:
         with open(config_file, "r") as f:
             config_params = yaml.safe_load(f.read())
+        if complete_config_file(config_params=config_params, default_config_params=default_config_params, file_name=file_name, default_app_dir=default_app_dir):
+            config_params = create_and_read_config_file(file_name=file_name, default_app_dir=default_app_dir, force_default=force_default)
+
     if config_params is None:
         config_params = create_and_read_config_file(
             file_name=file_name, default_app_dir=default_app_dir, force_default=True
         )
     return config_params
 
+def complete_config_file(config_params, default_config_params, file_name, default_app_dir):
+    has_updated = False
+    for key, values in default_config_params.items():
+            if key not in config_params.keys():
+                has_updated = True
+                data = {key:values}
+                append_config_file(data, file_name, default_app_dir)
+    return has_updated
 
 def overwrite_config_file(data, file_name, default_app_dir):
     config_file = config_file_path(file_name, default_app_dir)
