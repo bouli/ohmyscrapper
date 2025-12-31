@@ -13,7 +13,6 @@ def sniff_url(
     driver=None,
 ):
     final_report = {}
-    final_report["error"] = None
     if "metatags" in sniffing_config:
         metatags_to_search = sniffing_config["metatags"]
     else:
@@ -52,9 +51,8 @@ def sniff_url(
         soup = BeautifulSoup(r, "html.parser")
     except requests.exceptions.ReadTimeout:
         url_domain = url.split("/")[2]
-        final_report["error"] = (
-            f"!!! timeout (10 seconds) while checking the url with domain: `{url_domain}` !!!"
-        )
+        final_report["error"] = f"!!! timeout (10 seconds) while checking the url with domain: `{url_domain}` !!!"
+
         print(f"\n\n{final_report['error']}\n\n")
         soup = BeautifulSoup("", "html.parser")
 

@@ -76,7 +76,7 @@ def get_url_types():
 def get_url_sniffing():
     file = get_files("url_sniffing")
     return config_files.create_and_read_config_file(
-        file, default_app_dir=default_app_dir
+        file, default_app_dir=default_app_dir,complete_file=False
     )
 
 

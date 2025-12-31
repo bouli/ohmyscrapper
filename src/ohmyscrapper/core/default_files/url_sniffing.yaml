@@ -26,4 +26,4 @@ linkedin_redirect:
 
 read_all_a_tags:
   atags:
-    load_atags: True
+    load_links: True
