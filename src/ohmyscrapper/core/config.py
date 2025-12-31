@@ -69,14 +69,14 @@ def url_types_file_exists():
 def get_url_types():
     url_types_file = get_files("url_types")
     return config_files.create_and_read_config_file(
-        url_types_file, default_app_dir=default_app_dir,complete_file=False
+        url_types_file, default_app_dir=default_app_dir, complete_file=False
     )
 
 
 def get_url_sniffing():
     file = get_files("url_sniffing")
     return config_files.create_and_read_config_file(
-        file, default_app_dir=default_app_dir,complete_file=False
+        file, default_app_dir=default_app_dir, complete_file=False
     )
 
 

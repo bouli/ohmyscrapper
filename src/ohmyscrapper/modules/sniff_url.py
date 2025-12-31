@@ -47,11 +47,13 @@ def sniff_url(
         print("checking url:", url)
 
     try:
-        r = get_url(url=url,driver=driver)
+        r = get_url(url=url, driver=driver)
         soup = BeautifulSoup(r, "html.parser")
     except requests.exceptions.ReadTimeout:
         url_domain = url.split("/")[2]
-        final_report["error"] = f"!!! timeout (10 seconds) while checking the url with domain: `{url_domain}` !!!"
+        final_report["error"] = (
+            f"!!! timeout (10 seconds) while checking the url with domain: `{url_domain}` !!!"
+        )
 
         print(f"\n\n{final_report['error']}\n\n")
         soup = BeautifulSoup("", "html.parser")
@@ -77,7 +79,7 @@ def sniff_url(
     return final_report
 
 
-def _extract_a_tags(soup, silent,url=None):
+def _extract_a_tags(soup, silent, url=None):
     a_links = []
     if not silent:
         print("\n\n\n\n---- all <a> links ---")
@@ -169,7 +171,10 @@ def _complementary_report(final_report, soup, silent):
 
 
 def get_tags(url, sniffing_config={}, driver=None):
-    return sniff_url(url=url, silent=True, sniffing_config=sniffing_config, driver=driver)
+    return sniff_url(
+        url=url, silent=True, sniffing_config=sniffing_config, driver=driver
+    )
+
 
 def get_url(url, driver=None):
     if driver is None and config.get_sniffing("use-browser"):

@@ -2,7 +2,9 @@ import os
 import yaml
 
 
-def create_and_read_config_file(file_name, default_app_dir, force_default=False, complete_file=True):
+def create_and_read_config_file(
+    file_name, default_app_dir, force_default=False, complete_file=True
+):
     config_file = config_file_path(file_name, default_app_dir)
     default_config_params = _get_default_file(default_file=file_name)
     if force_default or not os.path.exists(config_file):
