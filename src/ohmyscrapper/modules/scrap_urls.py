@@ -2,13 +2,14 @@ import ohmyscrapper.models.urls_manager as urls_manager
 import ohmyscrapper.modules.sniff_url as sniff_url
 import ohmyscrapper.modules.load_txt as load_txt
 import ohmyscrapper.modules.classify_urls as classify_urls
+import ohmyscrapper.modules.browser as browser
 from ohmyscrapper.core import config
 
 import time
 import random
 
 
-def scrap_url(url, verbose=False):
+def scrap_url(url, verbose=False, driver=None):
     if url["url_type"] is None:
         url["url_type"] = "generic"
 
@@ -32,7 +33,7 @@ def scrap_url(url, verbose=False):
             sniffing_config = config.get_url_sniffing()
 
         url_report = sniff_url.get_tags(
-            url=url["url"], sniffing_config=sniffing_config[url_type]
+            url=url["url"], sniffing_config=sniffing_config[url_type], driver=driver
         )
     except Exception as e:
         urls_manager.set_url_error(url=url["url"], value="error on scrapping")
@@ -147,6 +148,7 @@ def scrap_urls(
     only_parents=True,
     verbose=False,
     n_urls=0,
+    driver=None,
 ):
     limit = 10
     classify_urls.classify_urls()
@@ -170,7 +172,10 @@ def scrap_urls(
         time.sleep(wait)
 
         print("🐕 Scrapper is sniffing the url...")
-        scrap_url(url=url, verbose=verbose)
+
+        if driver is None and config.get_sniffing("use-browser"):
+            driver = browser.get_driver()
+        scrap_url(url=url, verbose=verbose, driver=driver)
 
     n_urls = n_urls + len(urls)
     print(f"-- 🗃️ {n_urls} scraped urls...")
@@ -188,6 +193,7 @@ def scrap_urls(
             only_parents=only_parents,
             verbose=verbose,
             n_urls=n_urls,
+            driver=driver,
         )
     else:
         print("scrapping is over...")

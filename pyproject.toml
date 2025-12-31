@@ -17,6 +17,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "requests>=2.32.5",
     "rich>=14.2.0",
+    "selenium>=4.39.0",
     "urlextract>=1.9.0",
 ]
 

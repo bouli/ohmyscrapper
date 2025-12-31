@@ -71,7 +71,7 @@ def seeds(seeds={}):
 
 @use_connection
 def reset_seeds():
-    sql = "DELETE FROM urls_valid_prefix"
+    sql = "DELETE FROM urls_valid_prefix WHERE 1 = 1"
     c = conn.cursor()
     c.execute(sql)
     conn.commit()

@@ -2,12 +2,15 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from ohmyscrapper.core import config
+import ohmyscrapper.modules.browser as browser
+import time
 
 
 def sniff_url(
     url="https://www.linkedin.com/in/cesardesouzacardoso/",
     silent=False,
     sniffing_config={},
+    driver=None,
 ):
     final_report = {}
     final_report["error"] = None
@@ -45,8 +48,8 @@ def sniff_url(
         print("checking url:", url)
 
     try:
-        r = requests.get(url=url, timeout=config.get_sniffing("timeout"))
-        soup = BeautifulSoup(r.text, "html.parser")
+        r = get_url(url=url,driver=driver)
+        soup = BeautifulSoup(r, "html.parser")
     except requests.exceptions.ReadTimeout:
         url_domain = url.split("/")[2]
         final_report["error"] = (
@@ -69,14 +72,14 @@ def sniff_url(
                 soup=soup, silent=silent, body_tags_to_search=body_tags_to_search
             )
         )
-    final_report["a_links"] = _extract_a_tags(soup=soup, silent=silent)
+    final_report["a_links"] = _extract_a_tags(soup=soup, silent=silent, url=url)
     final_report = _complementary_report(final_report, soup, silent).copy()
     final_report["json"] = json.dumps(final_report)
 
     return final_report
 
 
-def _extract_a_tags(soup, silent):
+def _extract_a_tags(soup, silent,url=None):
     a_links = []
     if not silent:
         print("\n\n\n\n---- all <a> links ---")
@@ -84,12 +87,18 @@ def _extract_a_tags(soup, silent):
     i = 0
     for a_tag in soup.find_all("a"):
         i = i + 1
-        a_links.append({"text": a_tag.text, "href": a_tag.get("href")})
+
+        href = a_tag.get("href")
+        if url is not None and href[:1] == "/":
+            domain = url.split("//")[0] + "//" + url.split("//")[1].split("/")[0]
+            href = domain + href
+
+        a_links.append({"text": a_tag.text, "href": href})
         if not silent:
             print("\n-- <a> link", i, "-- ")
             print("target:", a_tag.get("target"))
             print("text:", str(a_tag.text).strip())
-            print("href:", a_tag.get("href"))
+            print("href:", href)
             print("-------------- ")
     return a_links
 
@@ -161,5 +170,20 @@ def _complementary_report(final_report, soup, silent):
     return final_report
 
 
-def get_tags(url, sniffing_config={}):
-    return sniff_url(url=url, silent=True, sniffing_config=sniffing_config)
+def get_tags(url, sniffing_config={}, driver=None):
+    return sniff_url(url=url, silent=True, sniffing_config=sniffing_config, driver=driver)
+
+def get_url(url, driver=None):
+    if driver is None and config.get_sniffing("use-browser"):
+        driver = browser.get_driver()
+
+    if driver is not None:
+        try:
+            driver.get(url)
+            time.sleep(5)
+            driver.implicitly_wait(10)
+            return driver.page_source
+        except:
+            print("error")
+            pass
+    return requests.get(url=url, timeout=config.get_sniffing("timeout")).text
