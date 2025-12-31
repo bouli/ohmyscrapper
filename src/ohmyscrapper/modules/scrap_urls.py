@@ -181,7 +181,7 @@ def scrap_urls(
     print(f"-- 🗃️ {n_urls} scraped urls...")
     classify_urls.classify_urls()
     if recursive:
-        wait = random.randint(5, 10)
+        wait = random.randint(int(config.get_sniffing("round-sleeping")/2), int(config.get_sniffing("round-sleeping")))
         print(
             f"🐶 Scrapper is sleeping for {wait} seconds before next round of {limit} urls"
         )

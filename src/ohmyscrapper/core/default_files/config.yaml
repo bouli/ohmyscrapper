@@ -19,3 +19,4 @@ sniffing:
   timeout: 10
   use-browser: chrome
   browser-waiting-time: 5
+  round-sleeping: 10
