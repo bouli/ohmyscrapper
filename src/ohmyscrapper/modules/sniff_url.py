@@ -178,8 +178,8 @@ def get_url(url, driver=None):
     if driver is not None:
         try:
             driver.get(url)
-            time.sleep(5)
-            driver.implicitly_wait(10)
+            time.sleep(config.get_sniffing("browser-waiting-time"))
+            driver.implicitly_wait(config.get_sniffing("browser-waiting-time"))
             return driver.page_source
         except:
             print("error")

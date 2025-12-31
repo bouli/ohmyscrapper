@@ -17,4 +17,5 @@ ai:
 
 sniffing:
   timeout: 10
-  use-browser: true
+  use-browser: chrome
+  browser-waiting-time: 5
