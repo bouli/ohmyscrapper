@@ -133,9 +133,21 @@ def _extract_text_tags(soup, silent, body_tags_to_search):
         print("\n\n\n\n---- all <text> tags ---\n")
     i = 0
     for text_tag, separator in body_tags_to_search.items():
-        if len(soup.find_all(text_tag)) > 0:
+        tag = text_tag
+        tag_class = None
+        tag_id = None
+
+        if len(text_tag.split(".")) > 1:
+            tag = text_tag.split(".")[0]
+            tag_class = text_tag.split(".")[1]
+
+        if len(text_tag.split("#")) > 1:
+            tag = text_tag.split("#")[0]
+            tag_id = text_tag.split("#")[1]
+
+        if len(soup.find_all(tag, class_=tag_class, id=tag_id)) > 0:
             valid_text_tags[text_tag] = []
-            for obj_tag in soup.find_all(text_tag):
+            for obj_tag in soup.find_all(tag, class_=tag_class, id=tag_id):
                 valid_text_tags[text_tag].append(obj_tag.text.strip())
             valid_text_tags[text_tag] = separator.join(valid_text_tags[text_tag])
             i = i + 1
