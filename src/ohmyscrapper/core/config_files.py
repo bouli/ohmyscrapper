@@ -2,7 +2,7 @@ import os
 import yaml
 
 
-def create_and_read_config_file(file_name, default_app_dir, force_default=False):
+def create_and_read_config_file(file_name, default_app_dir, force_default=False, complete_file=True):
     config_file = config_file_path(file_name, default_app_dir)
     default_config_params = _get_default_file(default_file=file_name)
     if force_default or not os.path.exists(config_file):
@@ -15,17 +15,18 @@ def create_and_read_config_file(file_name, default_app_dir, force_default=False)
     else:
         with open(config_file, "r") as f:
             config_params = yaml.safe_load(f.read())
-        if complete_config_file(
-            config_params=config_params,
-            default_config_params=default_config_params,
-            file_name=file_name,
-            default_app_dir=default_app_dir,
-        ):
-            config_params = create_and_read_config_file(
+        if complete_file:
+            if complete_config_file(
+                config_params=config_params,
+                default_config_params=default_config_params,
                 file_name=file_name,
                 default_app_dir=default_app_dir,
-                force_default=force_default,
-            )
+            ):
+                config_params = create_and_read_config_file(
+                    file_name=file_name,
+                    default_app_dir=default_app_dir,
+                    force_default=force_default,
+                )
 
     if config_params is None:
         config_params = create_and_read_config_file(
