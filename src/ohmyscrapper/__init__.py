@@ -104,6 +104,12 @@ def main():
     sniff_url_parser.add_argument(
         "url", default="https://cesarcardoso.cc/", help="Url to sniff"
     )
+    sniff_url_parser.add_argument(
+        "--metatags", default="mt", help="Meta tags you want to watch separated by comma ','"
+    )
+    sniff_url_parser.add_argument(
+        "--bodytags", default="bd", help="Body tags you want to watch separated by comma ','"
+    )
 
     show_urls_parser = subparsers.add_parser("show", help="Show urls and prefixes")
     show_urls_parser.add_argument(
@@ -153,7 +159,15 @@ def main():
         return
 
     if args.command == "sniff-url":
-        sniff_url(args.url)
+        sniffing_config = {}
+        if len(args.metatags) > 0:
+            sniffing_config['metatags'] = str(args.metatags).split(',')
+
+        if len(args.bodytags) > 0:
+            sniffing_config['bodytags'] = str(args.bodytags).split(',')
+
+        sniff_url(args.url,sniffing_config=sniffing_config)
+
         return
 
     if args.command == "scrap-urls":
