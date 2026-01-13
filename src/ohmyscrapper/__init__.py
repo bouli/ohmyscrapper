@@ -20,7 +20,7 @@ from ohmyscrapper.core.config import update
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.8.1")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.8.2")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -105,10 +105,14 @@ def main():
         "url", default="https://cesarcardoso.cc/", help="Url to sniff"
     )
     sniff_url_parser.add_argument(
-        "--metatags", default="mt", help="Meta tags you want to watch separated by comma ','"
+        "--metatags",
+        default="mt",
+        help="Meta tags you want to watch separated by comma ','",
     )
     sniff_url_parser.add_argument(
-        "--bodytags", default="bd", help="Body tags you want to watch separated by comma ','"
+        "--bodytags",
+        default="bd",
+        help="Body tags you want to watch separated by comma ','",
     )
 
     show_urls_parser = subparsers.add_parser("show", help="Show urls and prefixes")
@@ -161,12 +165,12 @@ def main():
     if args.command == "sniff-url":
         sniffing_config = {}
         if len(args.metatags) > 0:
-            sniffing_config['metatags'] = str(args.metatags).split(',')
+            sniffing_config["metatags"] = str(args.metatags).split(",")
 
         if len(args.bodytags) > 0:
-            sniffing_config['bodytags'] = str(args.bodytags).split(',')
+            sniffing_config["bodytags"] = str(args.bodytags).split(",")
 
-        sniff_url(args.url,sniffing_config=sniffing_config)
+        sniff_url(args.url, sniffing_config=sniffing_config)
 
         return
 
