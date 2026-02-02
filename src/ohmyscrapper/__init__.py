@@ -16,6 +16,7 @@ from ohmyscrapper.modules.show import (
 )
 from ohmyscrapper.modules.sniff_url import sniff_url
 from ohmyscrapper.modules.untouch_all import untouch_all
+from ohmyscrapper.modules import cache
 
 
 def main():
@@ -141,6 +142,9 @@ def main():
     )
     merge_parser = subparsers.add_parser("merge_dbs", help="Merge databases.")
 
+    clean_cache_parser = subparsers.add_parser(
+        "cleancache", help="Clean cache."
+    )
     args = parser.parse_args()
 
     if args.command == "classify-urls":
@@ -236,6 +240,8 @@ def main():
         export_report()
         return
 
+    if args.command == "cleancache":
+        cache.clean()
 
 if __name__ == "__main__":
     main()

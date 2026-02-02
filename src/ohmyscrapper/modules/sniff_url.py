@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 import ohmyscrapper.modules.browser as browser
 from ohmyscrapper.core import config
-
+from ohmyscrapper.modules import cache
 
 def sniff_url(
     url="https://www.linkedin.com/in/cesardesouzacardoso/",
@@ -193,6 +193,13 @@ def get_tags(url, sniffing_config={}, driver=None):
 
 
 def get_url(url, driver=None):
+    cache_prefix="sniff-urf:"
+    cached_code = cache.get(cache_id=cache_prefix+url)
+
+    if cached_code is not None:
+        print("You used the cache for this URL.")
+        return cached_code
+
     if driver is None and config.get_sniffing("use-browser"):
         driver = browser.get_driver()
 
@@ -202,30 +209,11 @@ def get_url(url, driver=None):
             time.sleep(config.get_sniffing("browser-waiting-time"))
             driver.implicitly_wait(config.get_sniffing("browser-waiting-time"))
             code = driver.page_source
-            save_code_in_cache(code=code, url=url)
+            cache.set(text=code, cache_id=cache_prefix+url)
             return code
         except:
             print("error")
             pass
     code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
-    save_code_in_cache(code=code, url=url)
+    cache.set(text=code, cache_id=cache_prefix+url)
     return code
-
-
-def save_code_in_cache(code, url):
-    cache_index_file_name = "cache_index.yaml"
-    cache_folder = config.get_dir("cache")
-    cache_index_file_path = os.path.join(cache_folder, cache_index_file_name)
-    if not os.path.exists(cache_index_file_path):
-        with open(cache_index_file_path, "+w") as cache_index_file_writer:
-            cache_index_file_writer.write(f"0: {cache_index_file_name}")
-
-    cache_folder_files = os.listdir(cache_folder)
-    new_file_index = len(cache_folder_files)
-
-    with open(cache_index_file_path, "a") as cache_index_file_writer:
-        cache_index_file_writer.write(f"{new_file_index}: {url}")
-    new_file_name = f"{new_file_index}.html"
-    new_file_path = os.path.join(cache_folder, new_file_name)
-    with open(new_file_path, "w+") as new_file_writer:
-        new_file_writer.write(code)
