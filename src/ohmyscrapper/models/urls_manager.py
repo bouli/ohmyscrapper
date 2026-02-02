@@ -1,9 +1,11 @@
+import glob
 import os
 import sqlite3
 import time
-import glob
-import pandas as pd
 from urllib.parse import urlparse, urlunparse
+
+import pandas as pd
+
 from ohmyscrapper.core import config
 
 

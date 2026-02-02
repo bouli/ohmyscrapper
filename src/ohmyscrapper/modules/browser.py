@@ -1,4 +1,5 @@
 from selenium import webdriver
+
 from ohmyscrapper.core.config import get_sniffing
 
 

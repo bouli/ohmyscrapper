@@ -1,9 +1,11 @@
-import ohmyscrapper.models.urls_manager as urls_manager
-from ohmyscrapper.core import config
 import math
 import os
+
 from rich.console import Console
 from rich.table import Table
+
+import ohmyscrapper.models.urls_manager as urls_manager
+from ohmyscrapper.core import config
 
 
 def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):

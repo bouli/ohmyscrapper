@@ -1,13 +1,15 @@
-import ohmyscrapper.models.urls_manager as urls_manager
-from ohmyscrapper.core import config
-from bs4 import BeautifulSoup
-from google import genai
-from dotenv import load_dotenv
+import json
+import os
 import random
 import time
-import os
+
 import yaml
-import json
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from google import genai
+
+import ohmyscrapper.models.urls_manager as urls_manager
+from ohmyscrapper.core import config
 
 # TODO: !!! REFACTOR !!!
 load_dotenv()
@@ -85,15 +87,12 @@ def process_with_ai(recursive=True, triggered_times=0):
 
     texts = ""
     for index, row in df.iterrows():
-        texts = (
-            texts
-            + f"""
+        texts = texts + f"""
         <text>
         <id>{str(row['id'])}</id>
         {row['description']}
         </text>
         """
-        )
     if texts == "":
         print("no urls to process")
         return

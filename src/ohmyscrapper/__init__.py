@@ -1,26 +1,26 @@
 import argparse
 
+from ohmyscrapper.core.config import update
 from ohmyscrapper.modules.classify_urls import classify_urls
-from ohmyscrapper.modules.sniff_url import sniff_url
 from ohmyscrapper.modules.load_txt import load_txt
-from ohmyscrapper.modules.seed import seed, export_url_types_to_file
+from ohmyscrapper.modules.merge_dbs import merge_dbs
+from ohmyscrapper.modules.process_with_ai import process_with_ai, reprocess_ai_history
 from ohmyscrapper.modules.scrap_urls import scrap_urls
+from ohmyscrapper.modules.seed import export_url_types_to_file, seed
 from ohmyscrapper.modules.show import (
+    export_report,
+    export_urls,
     show_url,
     show_urls,
     show_urls_valid_prefix,
-    export_urls,
-    export_report,
 )
+from ohmyscrapper.modules.sniff_url import sniff_url
 from ohmyscrapper.modules.untouch_all import untouch_all
-from ohmyscrapper.modules.process_with_ai import process_with_ai, reprocess_ai_history
-from ohmyscrapper.modules.merge_dbs import merge_dbs
-from ohmyscrapper.core.config import update
 
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.8.2")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.8.3")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

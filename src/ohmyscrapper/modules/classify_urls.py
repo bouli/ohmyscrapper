@@ -1,7 +1,9 @@
+import time
+
+import pandas as pd
+
 import ohmyscrapper.models.urls_manager as urls_manager
 from ohmyscrapper.modules import seed
-import pandas as pd
-import time
 
 
 def classify_urls(recursive=False):

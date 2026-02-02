@@ -1,10 +1,12 @@
+import json
+import os
+import time
+
 import requests
 from bs4 import BeautifulSoup
-import json
-from ohmyscrapper.core import config
+
 import ohmyscrapper.modules.browser as browser
-import time
-import os
+from ohmyscrapper.core import config
 
 
 def sniff_url(
@@ -208,6 +210,7 @@ def get_url(url, driver=None):
     code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
     save_code_in_cache(code=code, url=url)
     return code
+
 
 def save_code_in_cache(code, url):
     cache_index_file_name = "cache_index.yaml"

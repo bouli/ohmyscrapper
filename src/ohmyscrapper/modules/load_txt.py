@@ -1,5 +1,7 @@
 import os
+
 from urlextract import URLExtract
+
 import ohmyscrapper.models.urls_manager as urls_manager
 from ohmyscrapper.core import config
 

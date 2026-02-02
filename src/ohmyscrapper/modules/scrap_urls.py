@@ -1,12 +1,12 @@
-import ohmyscrapper.models.urls_manager as urls_manager
-import ohmyscrapper.modules.sniff_url as sniff_url
-import ohmyscrapper.modules.load_txt as load_txt
-import ohmyscrapper.modules.classify_urls as classify_urls
-import ohmyscrapper.modules.browser as browser
-from ohmyscrapper.core import config
-
-import time
 import random
+import time
+
+import ohmyscrapper.models.urls_manager as urls_manager
+import ohmyscrapper.modules.browser as browser
+import ohmyscrapper.modules.classify_urls as classify_urls
+import ohmyscrapper.modules.load_txt as load_txt
+import ohmyscrapper.modules.sniff_url as sniff_url
+from ohmyscrapper.core import config
 
 
 def scrap_url(url, verbose=False, driver=None):
