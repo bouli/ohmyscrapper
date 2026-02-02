@@ -4,6 +4,7 @@ import json
 from ohmyscrapper.core import config
 import ohmyscrapper.modules.browser as browser
 import time
+import os
 
 
 def sniff_url(
@@ -89,9 +90,10 @@ def _extract_a_tags(soup, silent, url=None):
         i = i + 1
 
         href = a_tag.get("href")
-        if url is not None and href[:1] == "/":
-            domain = url.split("//")[0] + "//" + url.split("//")[1].split("/")[0]
-            href = domain + href
+        if href is not None:
+            if url is not None and href[:1] == "/":
+                domain = url.split("//")[0] + "//" + url.split("//")[1].split("/")[0]
+                href = domain + href
 
         a_links.append({"text": a_tag.text, "href": href})
         if not silent:
@@ -197,8 +199,30 @@ def get_url(url, driver=None):
             driver.get(url)
             time.sleep(config.get_sniffing("browser-waiting-time"))
             driver.implicitly_wait(config.get_sniffing("browser-waiting-time"))
-            return driver.page_source
+            code = driver.page_source
+            save_code_in_cache(code=code, url=url)
+            return code
         except:
             print("error")
             pass
-    return requests.get(url=url, timeout=config.get_sniffing("timeout")).text
+    code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
+    save_code_in_cache(code=code, url=url)
+    return code
+
+def save_code_in_cache(code, url):
+    cache_index_file_name = "cache_index.yaml"
+    cache_folder = config.get_dir("cache")
+    cache_index_file_path = os.path.join(cache_folder, cache_index_file_name)
+    if not os.path.exists(cache_index_file_path):
+        with open(cache_index_file_path, "+w") as cache_index_file_writer:
+            cache_index_file_writer.write(f"0: {cache_index_file_name}")
+
+    cache_folder_files = os.listdir(cache_folder)
+    new_file_index = len(cache_folder_files)
+
+    with open(cache_index_file_path, "a") as cache_index_file_writer:
+        cache_index_file_writer.write(f"{new_file_index}: {url}")
+    new_file_name = f"{new_file_index}.html"
+    new_file_path = os.path.join(cache_folder, new_file_name)
+    with open(new_file_path, "w+") as new_file_writer:
+        new_file_writer.write(code)

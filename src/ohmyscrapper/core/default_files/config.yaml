@@ -2,11 +2,12 @@ db:
   db_file: local.db
 
 default_dirs:
-  db: ./db
-  input: ./input
-  output: ./output
-  prompts: ./prompts
-  templates: ./templates
+  db: ./ohmyscrapper_db
+  input: ./ohmyscrapper_input
+  output: ./ohmyscrapper_output
+  prompts: ./ohmyscrapper_prompts
+  templates: ./ohmyscrapper_templates
+  cache: ./ohmyscrapper_cache
 
 default_files:
   url_types: url_types.yaml
