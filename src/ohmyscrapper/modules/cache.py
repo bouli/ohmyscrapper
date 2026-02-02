@@ -1,26 +1,32 @@
 import os
+
 from ohmyscrapper.core import config
+
 
 def safe_cache_id(func):
     def _filter_cache_id(*args, **kwargs):
-        if 'cache_id' in args:
-            args['cache_id'] = filter_cache_id(args['cache_id'])
+        if "cache_id" in args:
+            args["cache_id"] = filter_cache_id(args["cache_id"])
 
-        if 'cache_id' in kwargs:
-            kwargs['cache_id'] = filter_cache_id(kwargs['cache_id'])
+        if "cache_id" in kwargs:
+            kwargs["cache_id"] = filter_cache_id(kwargs["cache_id"])
 
         return func(*args, **kwargs)
 
     return _filter_cache_id
 
+
 def filter_cache_id(cache_id):
-    cache_id = cache_id.replace('"',"").replace('\\',"")
+    cache_id = cache_id.replace('"', "").replace("\\", "")
     cache_id = f'"{cache_id}"'
     return cache_id
+
+
 cache_files_extension = "html"
 
+
 @safe_cache_id
-def set(text:str, cache_id:str):
+def set(text: str, cache_id: str):
     cache_folder = config.get_dir("cache")
     cache_index_file_path = get_cache_index_path()
 
@@ -38,19 +44,22 @@ def set(text:str, cache_id:str):
     with open(new_file_path, "w+") as new_file_writer:
         new_file_writer.write(text)
 
+
 @safe_cache_id
-def get(cache_id:str) -> str:
+def get(cache_id: str) -> str:
     cached_file_index = get_index_from_file_index(_safe_cache_id=cache_id)
     code = get_cached_file_by_index(cached_file_index=cached_file_index)
     return code
+
 
 def get_index_from_file_index(_safe_cache_id):
     cache_index_file = get_cache_index_file()
     if cache_index_file.find(_safe_cache_id) < 1:
         return None
-    cache_index_file = cache_index_file[:cache_index_file.find(_safe_cache_id)-2]
+    cache_index_file = cache_index_file[: cache_index_file.find(_safe_cache_id) - 2]
     cached_file_index = int(cache_index_file.split("\n")[-1].strip())
     return cached_file_index
+
 
 def get_cache_index_path() -> str:
     cache_index_file_name = "cache_index.yaml"
@@ -62,13 +71,15 @@ def get_cache_index_path() -> str:
 
     return cache_index_file_path
 
+
 def get_cache_index_file() -> str:
-    with open(get_cache_index_path(),"r") as f:
+    with open(get_cache_index_path(), "r") as f:
         cache_index_file_content = f.read()
 
     return cache_index_file_content
 
-def get_cached_file_by_index(cached_file_index:int) -> str:
+
+def get_cached_file_by_index(cached_file_index: int) -> str:
     code = None
     cache_folder = config.get_dir("cache")
     cached_file_name = f"{cached_file_index}.{cache_files_extension}"
@@ -79,10 +90,11 @@ def get_cached_file_by_index(cached_file_index:int) -> str:
         code = cached_file_reader.read()
     return code
 
+
 def clean():
     cache_folder = config.get_dir("cache")
     cache_folder_files = os.listdir(cache_folder)
     for file in cache_folder_files:
-        file_to_clean = os.path.join(cache_folder,file)
+        file_to_clean = os.path.join(cache_folder, file)
         if os.path.exists(file_to_clean):
             os.remove(file_to_clean)

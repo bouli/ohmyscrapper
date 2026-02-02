@@ -9,6 +9,7 @@ import ohmyscrapper.modules.browser as browser
 from ohmyscrapper.core import config
 from ohmyscrapper.modules import cache
 
+
 def sniff_url(
     url="https://www.linkedin.com/in/cesardesouzacardoso/",
     silent=False,
@@ -193,8 +194,8 @@ def get_tags(url, sniffing_config={}, driver=None):
 
 
 def get_url(url, driver=None):
-    cache_prefix="sniff-urf:"
-    cached_code = cache.get(cache_id=cache_prefix+url)
+    cache_prefix = "sniff-urf:"
+    cached_code = cache.get(cache_id=cache_prefix + url)
 
     if cached_code is not None:
         print("You used the cache for this URL.")
@@ -209,11 +210,11 @@ def get_url(url, driver=None):
             time.sleep(config.get_sniffing("browser-waiting-time"))
             driver.implicitly_wait(config.get_sniffing("browser-waiting-time"))
             code = driver.page_source
-            cache.set(text=code, cache_id=cache_prefix+url)
+            cache.set(text=code, cache_id=cache_prefix + url)
             return code
         except:
             print("error")
             pass
     code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
-    cache.set(text=code, cache_id=cache_prefix+url)
+    cache.set(text=code, cache_id=cache_prefix + url)
     return code
