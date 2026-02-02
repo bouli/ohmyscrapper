@@ -41,3 +41,8 @@ build:
 	uv sync
 	rm -r dist
 	uv build
+
+prepare:
+	rm -rf dist
+	rm -rf build
+	git log v0.8.2..HEAD --oneline --format="* %h %s (%an)" > CHANGELOG.md

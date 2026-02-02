@@ -48,3 +48,6 @@ filename = "README.md"
 
 [[tool.bumpversion.files]]
 filename = "src/ohmyscrapper/__init__.py"
+
+[[tool.bumpversion.files]]
+filename = "Makefile"
