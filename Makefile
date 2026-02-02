@@ -2,7 +2,7 @@ RUNNER=uv run src/ohmyscrapper/__init__.py
 .PHONY: clean, ai, start
 
 clean_db:
-	rm db/local.db
+	rm -f db/local.db
 
 load:
 	$(RUNNER) load
@@ -39,7 +39,7 @@ start:
 
 build:
 	uv sync
-	rm -r dist
+	rm -rf dist
 	uv build
 
 prepare:
