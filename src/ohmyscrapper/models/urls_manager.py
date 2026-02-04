@@ -419,6 +419,12 @@ def untouch_all_urls():
     c.execute("UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0")
     conn.commit()
 
+@use_connection
+def untouch_all_urls_with_errors():
+    c = conn.cursor()
+    c.execute("UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0 AND error LIKE 'error%'")
+    conn.commit()
+
 
 @use_connection
 def set_all_urls_as_history():

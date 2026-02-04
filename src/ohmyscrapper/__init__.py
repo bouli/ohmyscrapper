@@ -17,7 +17,7 @@ from ohmyscrapper.modules.show import (
     show_urls_valid_prefix,
 )
 from ohmyscrapper.modules.sniff_url import sniff_url
-from ohmyscrapper.modules.untouch_all import untouch_all
+from ohmyscrapper.modules.untouch_all import untouch_all, untouch_all_urls_with_errors
 
 
 def main():
@@ -65,6 +65,10 @@ def main():
 
     untouch_parser = subparsers.add_parser(
         "untouch-all", help="Untouch all urls. That resets classification"
+    )
+
+    untouch_errors_parser = subparsers.add_parser(
+        "untouch-errors", help="Untouch all urls with errors. That resets classification"
     )
 
     classify_urls_parser = subparsers.add_parser(
@@ -163,6 +167,10 @@ def main():
 
     if args.command == "untouch-all":
         untouch_all()
+        return
+
+    if args.command == "untouch-errors":
+        untouch_all_urls_with_errors()
         return
 
     if args.command == "sniff-url":
