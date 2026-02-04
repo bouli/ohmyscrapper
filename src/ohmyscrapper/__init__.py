@@ -1,7 +1,8 @@
 import argparse
 
 from ohmyscrapper.core.config import update
-from ohmyscrapper.modules import cache
+from ohmyscrapper.core import config
+from ohmyscrapper.core.string_cache import string_cache
 from ohmyscrapper.modules.classify_urls import classify_urls
 from ohmyscrapper.modules.load_txt import load_txt
 from ohmyscrapper.modules.merge_dbs import merge_dbs
@@ -239,6 +240,7 @@ def main():
         return
 
     if args.command == "cleancache":
+        cache = string_cache(cache_folder=config.get_dir("cache"))
         cache.clean()
 
 
