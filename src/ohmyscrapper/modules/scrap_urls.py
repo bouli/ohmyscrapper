@@ -36,7 +36,8 @@ def scrap_url(url, verbose=False, driver=None):
             url=url["url"], sniffing_config=sniffing_config[url_type], driver=driver
         )
     except Exception as e:
-        urls_manager.set_url_error(url=url["url"], value="error on scrapping")
+        e = str(e)
+        urls_manager.set_url_error(url=url["url"], value=f"error on scrapping: {e}")
         urls_manager.touch_url(url=url["url"])
         if verbose:
             print("\n\n!!! ERROR FOR:", url["url"])
@@ -133,7 +134,7 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
     if not changed:
         urls_manager.set_url_error(
             url=url["url"],
-            value="error: no title, url_destiny or description was founded",
+            value="warning: no title, url_destiny or description was founded",
         )
 
 
