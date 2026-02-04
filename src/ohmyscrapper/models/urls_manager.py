@@ -409,14 +409,14 @@ def untouch_url(url):
     url = str(url.strip())
 
     c = conn.cursor()
-    c.execute(f"UPDATE urls SET last_touch = NULL, url_type = NULL WHERE url = '{url}'")
+    c.execute(f"UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE url = '{url}'")
     conn.commit()
 
 
 @use_connection
 def untouch_all_urls():
     c = conn.cursor()
-    c.execute("UPDATE urls SET last_touch = NULL WHERE history = 0")
+    c.execute("UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0")
     conn.commit()
 
 
