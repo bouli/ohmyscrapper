@@ -1,7 +1,7 @@
 import argparse
 
-from ohmyscrapper.core.config import update
 from ohmyscrapper.core import config
+from ohmyscrapper.core.config import update
 from ohmyscrapper.core.string_cache import string_cache
 from ohmyscrapper.modules.classify_urls import classify_urls
 from ohmyscrapper.modules.load_txt import load_txt
@@ -22,7 +22,7 @@ from ohmyscrapper.modules.untouch_all import untouch_all, untouch_all_urls_with_
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.8.4")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.8.5")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -68,7 +68,8 @@ def main():
     )
 
     untouch_errors_parser = subparsers.add_parser(
-        "untouch-errors", help="Untouch all urls with errors. That resets classification"
+        "untouch-errors",
+        help="Untouch all urls with errors. That resets classification",
     )
 
     classify_urls_parser = subparsers.add_parser(

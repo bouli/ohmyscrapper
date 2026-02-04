@@ -11,6 +11,7 @@ from ohmyscrapper.core.string_cache import string_cache
 
 cache = string_cache(cache_folder=config.get_dir("cache"))
 
+
 def sniff_url(
     url="https://www.linkedin.com/in/cesardesouzacardoso/",
     silent=False,
