@@ -123,10 +123,14 @@ def get_urls_valid_prefix(limit=0):
 def get_urls(limit=0):
     if limit > 0:
         df = pd.read_sql_query(
-            f"SELECT * FROM urls LIMIT {limit} ORDER BY history ASC, url_type DESC, last_touch DESC", conn
+            f"SELECT * FROM urls LIMIT {limit} ORDER BY history ASC, url_type DESC, last_touch DESC",
+            conn,
         )
     else:
-        df = pd.read_sql_query(f"SELECT * FROM urls ORDER BY history ASC, url_type DESC, last_touch DESC", conn)
+        df = pd.read_sql_query(
+            f"SELECT * FROM urls ORDER BY history ASC, url_type DESC, last_touch DESC",
+            conn,
+        )
     return df
 
 

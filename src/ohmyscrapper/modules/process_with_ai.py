@@ -36,7 +36,7 @@ def process_ai_response(response):
             title = " - ".join(title.values())
             if url_parent["description_links"] > 1 and url_child_xml["id"] != "":
                 print("-- child updated -- \n", url_child_xml["url"], ":", title)
-                #urls_manager.set_url_title(url_child_xml["url"], title)
+                # urls_manager.set_url_title(url_child_xml["url"], title)
                 urls_manager.set_url_ai_processed_by_url(
                     url_child_xml["url"], str(json.dumps(url_child_xml))
                 )
@@ -46,7 +46,7 @@ def process_ai_response(response):
                     )
             else:
                 print("-- parent updated -- \n", url_parent["url"], ":", title)
-                #urls_manager.set_url_title(url_parent["url"], title)
+                # urls_manager.set_url_title(url_parent["url"], title)
                 urls_manager.set_url_ai_processed_by_url(
                     url_parent["url"], str(json.dumps(url_child_xml))
                 )
@@ -140,7 +140,11 @@ def process_with_ai(recursive=True, triggered_times=0, bypass_budget_control=Fal
             print("Please, check it.")
             return
 
-        process_with_ai(recursive=recursive, triggered_times=triggered_times, bypass_budget_control=bypass_budget_control)
+        process_with_ai(
+            recursive=recursive,
+            triggered_times=triggered_times,
+            bypass_budget_control=bypass_budget_control,
+        )
 
     return
 
