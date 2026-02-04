@@ -189,9 +189,9 @@ def get_urls_by_url_type(url_type):
 
 
 @use_connection
-def get_urls_by_url_type_for_ai_process(url_type="linkedin_post", limit=10):
+def get_urls_by_url_type_for_ai_process(limit=10):
     df = pd.read_sql_query(
-        f"SELECT * FROM urls WHERE history = 0 AND url_type = '{url_type}' AND ai_processed = 0 LIMIT {limit}",
+        f"SELECT * FROM urls WHERE history = 0 AND (title IS NOT NULL OR description IS NOT NULL) AND ai_processed = 0 LIMIT {limit}",
         conn,
     )
     return df

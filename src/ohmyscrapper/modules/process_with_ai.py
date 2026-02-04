@@ -36,7 +36,7 @@ def process_ai_response(response):
             title = " - ".join(title.values())
             if url_parent["description_links"] > 1 and url_child_xml["id"] != "":
                 print("-- child updated -- \n", url_child_xml["url"], ":", title)
-                urls_manager.set_url_title(url_child_xml["url"], title)
+                #urls_manager.set_url_title(url_child_xml["url"], title)
                 urls_manager.set_url_ai_processed_by_url(
                     url_child_xml["url"], str(json.dumps(url_child_xml))
                 )
@@ -46,7 +46,7 @@ def process_ai_response(response):
                     )
             else:
                 print("-- parent updated -- \n", url_parent["url"], ":", title)
-                urls_manager.set_url_title(url_parent["url"], title)
+                #urls_manager.set_url_title(url_parent["url"], title)
                 urls_manager.set_url_ai_processed_by_url(
                     url_parent["url"], str(json.dumps(url_child_xml))
                 )
@@ -72,15 +72,14 @@ def _xml_children_to_dict(xml):
     return item_dict
 
 
-def process_with_ai(recursive=True, triggered_times=0):
+def process_with_ai(recursive=True, triggered_times=0, bypass_budget_control=False):
     triggered_times = triggered_times + 1
 
     prompt = _get_prompt()
     if not prompt:
         return
 
-    url_type = "linkedin_post"
-    df = urls_manager.get_urls_by_url_type_for_ai_process(url_type)
+    df = urls_manager.get_urls_by_url_type_for_ai_process()
     if len(df) == 0:
         print("no urls to process with ai anymore")
         return
@@ -90,6 +89,7 @@ def process_with_ai(recursive=True, triggered_times=0):
         texts = texts + f"""
         <text>
         <id>{str(row['id'])}</id>
+        {row['title']}
         {row['description']}
         </text>
         """
@@ -131,7 +131,7 @@ def process_with_ai(recursive=True, triggered_times=0):
         print("sleeping for", wait, "seconds before next round")
         time.sleep(wait)
 
-        if triggered_times > 5:
+        if triggered_times > 5 and not bypass_budget_control:
             print("!!! This is a break to prevent budget accident$.")
             print("You triggered", triggered_times, "times the AI processing function.")
             print(
@@ -140,7 +140,7 @@ def process_with_ai(recursive=True, triggered_times=0):
             print("Please, check it.")
             return
 
-        process_with_ai(recursive=recursive, triggered_times=triggered_times)
+        process_with_ai(recursive=recursive, triggered_times=triggered_times, bypass_budget_control=bypass_budget_control)
 
     return
 

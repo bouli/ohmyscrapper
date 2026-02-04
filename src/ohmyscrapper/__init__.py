@@ -45,6 +45,9 @@ def main():
     ai_process_parser.add_argument(
         "--history", default=False, help="Reprocess ai history", action="store_true"
     )
+    ai_process_parser.add_argument(
+        "--i-am-rich", default=False, help="`I am rich` mode by pass the bugdget control for AI.", action="store_true"
+    )
 
     seed_parser = subparsers.add_parser(
         "seed", help="Seed database with `url_types` to classify the `urls`."
@@ -213,11 +216,11 @@ def main():
         export_urls(limit=int(args.limit), csv_file=args.file, simplify=args.simplify)
         return
 
-    if args.command == "process-with-ai":
+    if args.command == "ai":
         if args.history:
             reprocess_ai_history()
         else:
-            process_with_ai()
+            process_with_ai(bypass_budget_control=args.i_am_rich)
         return
 
     if args.command == "report":
