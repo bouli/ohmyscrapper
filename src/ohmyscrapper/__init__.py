@@ -41,6 +41,13 @@ def main():
         action="store_true",
     )
 
+    start_parser.add_argument(
+        "--i-am-rich",
+        default=False,
+        help="`I am rich` mode by pass the bugdget control for AI.",
+        action="store_true",
+    )
+
     ai_process_parser = subparsers.add_parser("ai", help="Process with AI.")
     ai_process_parser.add_argument(
         "--history", default=False, help="Reprocess ai history", action="store_true"
@@ -248,7 +255,7 @@ def main():
             only_parents=False,
         )
         if args.ai:
-            process_with_ai()
+            process_with_ai(bypass_budget_control=args.i_am_rich)
         export_urls()
         export_urls(csv_file="output/urls-simplified.csv", simplify=True)
         export_report()
