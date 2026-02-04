@@ -146,8 +146,8 @@ def main():
     export_parser.add_argument("--limit", default=0, help="Limit of lines to export")
     export_parser.add_argument(
         "--file",
-        default="output/urls.csv",
-        help="File path. Default is output/urls.csv",
+        default="urls.csv",
+        help="File path. Default is urls.csv",
     )
     export_parser.add_argument(
         "--simplify",
@@ -257,7 +257,7 @@ def main():
         if args.ai:
             process_with_ai(bypass_budget_control=args.i_am_rich)
         export_urls()
-        export_urls(csv_file="output/urls-simplified.csv", simplify=True)
+        export_urls(csv_file="urls-simplified.csv", simplify=True)
         export_report()
         return
 

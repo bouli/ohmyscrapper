@@ -8,8 +8,10 @@ import ohmyscrapper.models.urls_manager as urls_manager
 from ohmyscrapper.core import config
 
 
-def export_urls(limit=0, csv_file="output/urls.csv", simplify=False):
+def export_urls(limit=0, csv_file="urls.csv", simplify=False):
     output_folder = config.get_dir("output")
+
+    csv_file = os.path.join(output_folder, csv_file)
 
     df = urls_manager.get_urls(limit=limit)
 
