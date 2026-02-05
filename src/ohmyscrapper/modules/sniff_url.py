@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 
 import ohmyscrapper.modules.browser as browser
 from ohmyscrapper.core import config
-from ohmyscrapper.core.string_cache import string_cache
+from unforgettable import unforgettable
 
-cache = string_cache(cache_folder=config.get_dir("cache"))
+cache = unforgettable(cache_folder=config.get_dir("cache"))
 
 
 def sniff_url(

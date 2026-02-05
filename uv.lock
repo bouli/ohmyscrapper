@@ -522,6 +522,7 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
     { name = "selenium" },
+    { name = "unforgettable" },
     { name = "urlextract" },
 ]
 
@@ -536,6 +537,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.5" },
     { name = "rich", specifier = ">=14.2.0" },
     { name = "selenium", specifier = ">=4.39.0" },
+    { name = "unforgettable", specifier = ">=0.1.0" },
     { name = "urlextract", specifier = ">=1.9.0" },
 ]
 
@@ -1064,6 +1066,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5e/a7/c202b344c5ca7daf398f3b8a477eeb205cf3b6f32e7ec3a6bac0629ca975/tzdata-2025.3.tar.gz", hash = "sha256:de39c2ca5dc7b0344f2eba86f49d614019d29f060fc4ebc8a417896a620b56a7", size = 196772, upload-time = "2025-12-13T17:45:35.667Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/b0/003792df09decd6849a5e39c28b513c06e84436a54440380862b5aeff25d/tzdata-2025.3-py2.py3-none-any.whl", hash = "sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1", size = 348521, upload-time = "2025-12-13T17:45:33.889Z" },
+]
+
+[[package]]
+name = "unforgettable"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/52/38/8898214fa2549fd940668f6c6c530778d21135b15a6d2d77d348c7768039/unforgettable-0.1.0.tar.gz", hash = "sha256:f1f01d6ab903b6c883b8196e76d5fbe28109179dafc3e1fab1da62de99fe794c", size = 2920, upload-time = "2026-02-05T12:19:17.385Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/dc/c44011eed98818ad99948c92620c0e341fd59d3529dc5e81163ee0d562ea/unforgettable-0.1.0-py3-none-any.whl", hash = "sha256:b6ea7d967e5c38c8ea4bbf2eeb1aa0e1865e67b42de051efceccd6e1b72235e5", size = 2978, upload-time = "2026-02-05T12:19:15.713Z" },
 ]
 
 [[package]]
