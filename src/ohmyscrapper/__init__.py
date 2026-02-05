@@ -1,8 +1,9 @@
 import argparse
 
+from unforgettable import unforgettable
+
 from ohmyscrapper.core import config
 from ohmyscrapper.core.config import update
-from unforgettable import unforgettable
 from ohmyscrapper.modules.classify_urls import classify_urls
 from ohmyscrapper.modules.load_txt import load_txt
 from ohmyscrapper.modules.merge_dbs import merge_dbs
@@ -22,7 +23,7 @@ from ohmyscrapper.modules.untouch_all import untouch_all, untouch_all_urls_with_
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.9.1")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.9.2")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

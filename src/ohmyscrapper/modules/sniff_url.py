@@ -4,10 +4,10 @@ import time
 
 import requests
 from bs4 import BeautifulSoup
+from unforgettable import unforgettable
 
 import ohmyscrapper.modules.browser as browser
 from ohmyscrapper.core import config
-from unforgettable import unforgettable
 
 cache = unforgettable(cache_folder=config.get_dir("cache"))
 
