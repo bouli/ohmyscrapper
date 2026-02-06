@@ -37,8 +37,10 @@ def export_urls(limit=0, csv_file="urls.csv", simplify=False):
     print("--------------------")
 
 
-def export_report(csv_file="output/report.csv"):
+def export_report(csv_file="report.csv"):
     output_folder = config.get_dir("output")
+    csv_file = os.path.join(output_folder, csv_file)
+
     df = urls_manager.get_urls_report()
 
     df.to_csv(csv_file, index=False)
