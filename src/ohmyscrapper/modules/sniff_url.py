@@ -212,11 +212,11 @@ def get_url(url, driver=None):
             time.sleep(config.get_sniffing("browser-waiting-time"))
             driver.implicitly_wait(config.get_sniffing("browser-waiting-time"))
             code = driver.page_source
-            cache.set(text=code, cache_id=cache_prefix + url)
+            cache.set(content=code, cache_id=cache_prefix + url)
             return code
         except:
             print("error")
             pass
     code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
-    cache.set(text=code, cache_id=cache_prefix + url)
+    cache.set(content=code, cache_id=cache_prefix + url)
     return code
