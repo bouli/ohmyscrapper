@@ -45,4 +45,4 @@ build:
 prepare:
 	rm -rf dist
 	rm -rf build
-	git log v0.9.4..HEAD --oneline --format="* %h %s (%an)" > CHANGELOG.md
+	git log v0.9.5..HEAD --oneline --format="* %h %s (%an)" > CHANGELOG.md
