@@ -87,7 +87,12 @@ def main():
         "untouch-errors",
         help="Untouch all urls with errors. That resets classification",
     )
-
+    untouch_errors_parser.add_argument(
+        "--include-warnings",
+        default=False,
+        help="Reset warnings as well.",
+        action="store_true",
+    )
     classify_urls_parser = subparsers.add_parser(
         "classify-urls", help="Classify loaded urls"
     )
@@ -198,7 +203,8 @@ def main():
         return
 
     if args.command == "untouch-errors":
-        untouch_all_urls_with_errors()
+
+        untouch_all_urls_with_errors(include_warnings=args.include_warnings)
         return
 
     if args.command == "sniff-url":
