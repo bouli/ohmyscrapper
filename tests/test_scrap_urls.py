@@ -172,6 +172,52 @@ def test_scrap_url_uses_generic_type_when_url_type_is_missing(
     )
 
 
+def test_get_next_proxy_rotates_configured_proxy_pool(monkeypatch):
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_sniffing",
+        Mock(return_value=["http://proxy-1:8080", "http://proxy-2:8080"]),
+    )
+    scrap_urls._proxy_rotation_index = 0
+
+    assert scrap_urls.get_proxy_pool() == [
+        "http://proxy-1:8080",
+        "http://proxy-2:8080",
+    ]
+    assert scrap_urls.get_next_proxy() == "http://proxy-1:8080"
+    assert scrap_urls.get_next_proxy() == "http://proxy-2:8080"
+    assert scrap_urls.get_next_proxy() == "http://proxy-1:8080"
+
+
+def test_scrap_url_passes_selected_proxy_to_sniffing(monkeypatch, patched_url_manager):
+    sniffing_config = {"job": {"bodytags": {"h1": "title"}}}
+    url_report = {"h1": "Title", "json": '{"h1": "Title"}'}
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_url_sniffing",
+        Mock(return_value=sniffing_config),
+    )
+    monkeypatch.setattr(
+        scrap_urls.sniff_url,
+        "get_tags",
+        Mock(return_value=url_report),
+    )
+    monkeypatch.setattr(scrap_urls, "process_sniffed_url", Mock())
+
+    result = scrap_urls.scrap_url(
+        {"url": "https://example.com/page", "url_type": "job"},
+        proxy="http://proxy-1:8080",
+    )
+
+    assert result is True
+    scrap_urls.sniff_url.get_tags.assert_called_once_with(
+        url="https://example.com/page",
+        sniffing_config=sniffing_config["job"],
+        driver=None,
+        proxy="http://proxy-1:8080",
+    )
+
+
 def test_scrap_url_appends_default_sniffing_config_for_unknown_type(
     monkeypatch,
     patched_url_manager,

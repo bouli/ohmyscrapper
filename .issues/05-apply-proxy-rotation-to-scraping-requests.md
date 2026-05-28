@@ -6,11 +6,11 @@ Add proxy pool configuration and apply proxy selection consistently across scrap
 
 ## Acceptance criteria
 
-- [ ] A list of proxies can be configured using the existing configuration system.
-- [ ] Scraping requests select proxies from the configured pool.
-- [ ] Browser-backed scraping receives compatible proxy settings when enabled.
-- [ ] Proxy connection failures are recorded as scrape failures with useful context.
-- [ ] Tests cover proxy selection and request/browser configuration behavior.
+- [x] A list of proxies can be configured using the existing configuration system.
+- [x] Scraping requests select proxies from the configured pool.
+- [x] Browser-backed scraping receives compatible proxy settings when enabled.
+- [x] Proxy connection failures are recorded as scrape failures with useful context.
+- [x] Tests cover proxy selection and request/browser configuration behavior.
 
 ## Blocked by
 

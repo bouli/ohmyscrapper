@@ -16,6 +16,8 @@ DEFAULT_SCRAPING_POLICY = {
     "retry-backoff": 0,
 }
 
+_proxy_rotation_index = 0
+
 
 def _get_sniffing_policy_number(param, default, cast=float):
     try:
@@ -88,7 +90,36 @@ def get_scraping_delay(policy=None):
     return random.uniform(delay_min, delay_max)
 
 
-def scrap_url(url, verbose=False, driver=None):
+def get_proxy_pool():
+    try:
+        proxies = config.get_sniffing("proxies")
+    except Exception:
+        return []
+
+    if proxies is None or isinstance(proxies, bool):
+        return []
+    if isinstance(proxies, str):
+        return [item.strip() for item in proxies.split(",") if item.strip()]
+    if isinstance(proxies, (list, tuple)):
+        return [str(item).strip() for item in proxies if str(item).strip()]
+
+    return [str(proxies).strip()] if str(proxies).strip() else []
+
+
+def get_next_proxy(proxy_pool=None):
+    global _proxy_rotation_index
+
+    if proxy_pool is None:
+        proxy_pool = get_proxy_pool()
+    if len(proxy_pool) == 0:
+        return None
+
+    proxy = proxy_pool[_proxy_rotation_index % len(proxy_pool)]
+    _proxy_rotation_index += 1
+    return proxy
+
+
+def scrap_url(url, verbose=False, driver=None, proxy=None):
     if url["url_type"] is None:
         url["url_type"] = "generic"
 
@@ -98,6 +129,8 @@ def scrap_url(url, verbose=False, driver=None):
     policy = get_scraping_policy()
     retry_count = policy["retry_count"]
     last_error = None
+    if proxy is None:
+        proxy = get_next_proxy()
 
     for attempt in range(retry_count + 1):
         try:
@@ -116,11 +149,14 @@ def scrap_url(url, verbose=False, driver=None):
                 config.append_url_sniffing({url_type: default_type_sniffing})
                 sniffing_config = config.get_url_sniffing()
 
-            url_report = sniff_url.get_tags(
-                url=url["url"],
-                sniffing_config=sniffing_config[url_type],
-                driver=driver,
-            )
+            sniff_kwargs = {
+                "url": url["url"],
+                "sniffing_config": sniffing_config[url_type],
+                "driver": driver,
+            }
+            if proxy is not None:
+                sniff_kwargs["proxy"] = proxy
+            url_report = sniff_url.get_tags(**sniff_kwargs)
             break
         except Exception as e:
             last_error = e
@@ -321,7 +357,9 @@ def scrap_urls(
             return
 
         policy = get_scraping_policy()
+        proxy_pool = get_proxy_pool()
         for index, url in urls.iterrows():
+            proxy = get_next_proxy(proxy_pool)
             wait = get_scraping_delay(policy)
             print(
                 "🐶 Scrapper is sleeping for", wait, "seconds before scraping next url..."
@@ -331,9 +369,16 @@ def scrap_urls(
 
             print("🐕 Scrapper is sniffing the url...")
 
-            if driver is None and config.get_sniffing("use-browser"):
+            active_driver = driver
+            close_active_driver = False
+            if active_driver is None and config.get_sniffing("use-browser"):
                 try:
-                    driver = browser.get_driver()
+                    if proxy is None:
+                        active_driver = browser.get_driver()
+                        driver = active_driver
+                    else:
+                        active_driver = browser.get_driver(proxy=proxy)
+                        close_active_driver = True
                 except Exception as e:
                     urls_manager.set_url_error(
                         url=url["url"],
@@ -346,12 +391,20 @@ def scrap_urls(
                     print(f"!!! browser startup error for {url['url']}: {e}")
                     print_scraping_progress(run_id)
                     continue
-            scraped = scrap_url(url=url, verbose=verbose, driver=driver)
-            if scraped:
-                urls_manager.increment_scraping_run_counter(run_id, "completed_count")
-            else:
-                urls_manager.increment_scraping_run_counter(run_id, "failure_count")
-            print_scraping_progress(run_id)
+            try:
+                scraped = scrap_url(
+                    url=url, verbose=verbose, driver=active_driver, proxy=proxy
+                )
+                if scraped:
+                    urls_manager.increment_scraping_run_counter(
+                        run_id, "completed_count"
+                    )
+                else:
+                    urls_manager.increment_scraping_run_counter(run_id, "failure_count")
+                print_scraping_progress(run_id)
+            finally:
+                if close_active_driver and hasattr(active_driver, "quit"):
+                    active_driver.quit()
 
         n_urls = n_urls + len(urls)
         print(f"-- 🗃️ {n_urls} scraped urls...")

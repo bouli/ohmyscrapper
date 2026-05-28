@@ -57,7 +57,7 @@ def _add_argument(options, argument):
         options.add_argument(argument)
 
 
-def build_options(browser_name=None):
+def build_options(browser_name=None, proxy=None):
     if browser_name is None:
         browser_name = get_configured_browser_name()
 
@@ -87,12 +87,15 @@ def build_options(browser_name=None):
     for argument in _as_list(_get_sniffing_value("browser-arguments", [])):
         _add_argument(options, argument)
 
+    if proxy is not None and browser_name not in {"safari", "ie"}:
+        _add_argument(options, f"--proxy-server={proxy}")
+
     return options
 
 
-def get_driver():
+def get_driver(proxy=None):
     browser_name = get_configured_browser_name()
-    options = build_options(browser_name)
+    options = build_options(browser_name, proxy=proxy)
 
     try:
         if browser_name == "safari":

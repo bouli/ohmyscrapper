@@ -17,6 +17,7 @@ def sniff_url(
     silent=False,
     sniffing_config={},
     driver=None,
+    proxy=None,
 ):
     final_report = {}
     if "metatags" in sniffing_config:
@@ -53,7 +54,7 @@ def sniff_url(
         print("checking url:", url)
 
     try:
-        r = get_url(url=url, driver=driver)
+        r = get_url(url=url, driver=driver, proxy=proxy)
         soup = BeautifulSoup(r, "html.parser")
     except requests.exceptions.ReadTimeout:
         url_domain = url.split("/")[2]
@@ -189,13 +190,19 @@ def _complementary_report(final_report, soup, silent):
     return final_report
 
 
-def get_tags(url, sniffing_config={}, driver=None):
-    return sniff_url(
-        url=url, silent=True, sniffing_config=sniffing_config, driver=driver
-    )
+def get_tags(url, sniffing_config={}, driver=None, proxy=None):
+    sniff_kwargs = {
+        "url": url,
+        "silent": True,
+        "sniffing_config": sniffing_config,
+        "driver": driver,
+    }
+    if proxy is not None:
+        sniff_kwargs["proxy"] = proxy
+    return sniff_url(**sniff_kwargs)
 
 
-def get_url(url, driver=None):
+def get_url(url, driver=None, proxy=None):
     cache_prefix = "sniff-urf:"
     cached_code = cache.get(cache_id=cache_prefix + url)
 
@@ -205,7 +212,10 @@ def get_url(url, driver=None):
 
     if driver is None and config.get_sniffing("use-browser"):
         try:
-            driver = browser.get_driver()
+            if proxy is None:
+                driver = browser.get_driver()
+            else:
+                driver = browser.get_driver(proxy=proxy)
         except Exception as exc:
             raise RuntimeError(f"browser startup error for {url}: {exc}") from exc
 
@@ -219,6 +229,14 @@ def get_url(url, driver=None):
             return code
         except Exception as exc:
             print(f"browser error while checking {url}: {exc}")
-    code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
+    request_kwargs = {"url": url, "timeout": config.get_sniffing("timeout")}
+    if proxy is not None:
+        request_kwargs["proxies"] = {"http": proxy, "https": proxy}
+
+    try:
+        code = requests.get(**request_kwargs).text
+    except requests.exceptions.ProxyError as exc:
+        raise RuntimeError(f"proxy error for {url} using {proxy}: {exc}") from exc
+
     cache.set(content=code, cache_id=cache_prefix + url)
     return code

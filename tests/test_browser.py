@@ -98,6 +98,14 @@ def test_build_options_maps_headless_for_firefox(monkeypatch):
     assert "--no-sandbox" not in options.arguments
 
 
+def test_build_options_adds_proxy_argument_for_browser(monkeypatch):
+    patch_browser_config(monkeypatch, {})
+
+    options = browser.build_options("chrome", proxy="http://proxy-1:8080")
+
+    assert "--proxy-server=http://proxy-1:8080" in options.arguments
+
+
 def test_get_driver_reports_browser_startup_errors(monkeypatch):
     chrome = Mock(side_effect=Exception("binary missing"))
 

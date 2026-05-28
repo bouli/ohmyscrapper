@@ -184,6 +184,26 @@ def test_get_tags_calls_sniff_url_silently(monkeypatch):
     )
 
 
+def test_get_tags_forwards_proxy_when_provided(monkeypatch):
+    sniff = Mock(return_value={"ok": True})
+    monkeypatch.setattr(sniff_url, "sniff_url", sniff)
+
+    result = sniff_url.get_tags(
+        "https://example.com",
+        sniffing_config={"bodytags": []},
+        proxy="http://proxy-1:8080",
+    )
+
+    assert result == {"ok": True}
+    sniff.assert_called_once_with(
+        url="https://example.com",
+        silent=True,
+        sniffing_config={"bodytags": []},
+        driver=None,
+        proxy="http://proxy-1:8080",
+    )
+
+
 def test_get_url_returns_cached_code_without_fetching(monkeypatch):
     cache = Mock()
     cache.get.return_value = "<html>cached</html>"
@@ -313,4 +333,59 @@ def test_get_url_uses_requests_when_browser_is_disabled(monkeypatch):
     cache.set.assert_called_once_with(
         content="<html>requests</html>",
         cache_id="sniff-urf:https://example.com",
+    )
+
+
+def test_get_url_sends_configured_proxy_to_requests(monkeypatch):
+    cache = Mock()
+    cache.get.return_value = None
+    response = Mock()
+    response.text = "<html>requests</html>"
+    monkeypatch.setattr(sniff_url, "cache", cache)
+    monkeypatch.setattr(
+        sniff_url.config,
+        "get_sniffing",
+        Mock(side_effect=[False, 10]),
+    )
+    monkeypatch.setattr(sniff_url.requests, "get", Mock(return_value=response))
+
+    result = sniff_url.get_url(
+        "https://example.com",
+        proxy="http://proxy-1:8080",
+    )
+
+    assert result == "<html>requests</html>"
+    sniff_url.requests.get.assert_called_once_with(
+        url="https://example.com",
+        timeout=10,
+        proxies={
+            "http": "http://proxy-1:8080",
+            "https": "http://proxy-1:8080",
+        },
+    )
+
+
+def test_get_url_reports_proxy_errors_with_context(monkeypatch):
+    cache = Mock()
+    cache.get.return_value = None
+    monkeypatch.setattr(sniff_url, "cache", cache)
+    monkeypatch.setattr(
+        sniff_url.config,
+        "get_sniffing",
+        Mock(side_effect=[False, 10]),
+    )
+    monkeypatch.setattr(
+        sniff_url.requests,
+        "get",
+        Mock(side_effect=requests.exceptions.ProxyError("refused")),
+    )
+
+    with pytest.raises(RuntimeError) as exc_info:
+        sniff_url.get_url(
+            "https://example.com",
+            proxy="http://proxy-1:8080",
+        )
+
+    assert "proxy error for https://example.com using http://proxy-1:8080" in str(
+        exc_info.value
     )

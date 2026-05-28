@@ -28,3 +28,4 @@ sniffing:
   request-delay-max: 3
   retry-count: 0
   retry-backoff: 0
+  proxies: []

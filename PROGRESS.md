@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-05-28 22:20 UTC
+
+- Completed `.issues/05-apply-proxy-rotation-to-scraping-requests.md`.
+- Added optional `sniffing.proxies` configuration and round-robin proxy selection for scraping.
+- Threaded selected proxies through sniffing requests and browser startup, including Selenium proxy arguments for supported browsers.
+- Added proxy failure context so proxy connection errors are recorded by the existing scrape failure path.
+- Added tests for proxy rotation, request proxy kwargs, browser proxy options, and proxy error context.
+- Verification: `uv run pytest` passed with 144 tests.
+
 ## 2026-05-28 21:31 UTC
 
 - Completed `.issues/01-persist-scraping-run-status.md`.
