@@ -332,7 +332,20 @@ def scrap_urls(
             print("🐕 Scrapper is sniffing the url...")
 
             if driver is None and config.get_sniffing("use-browser"):
-                driver = browser.get_driver()
+                try:
+                    driver = browser.get_driver()
+                except Exception as e:
+                    urls_manager.set_url_error(
+                        url=url["url"],
+                        value=f"browser startup error for {url['url']}: {e}",
+                    )
+                    urls_manager.touch_url(url=url["url"])
+                    urls_manager.increment_scraping_run_counter(
+                        run_id, "failure_count"
+                    )
+                    print(f"!!! browser startup error for {url['url']}: {e}")
+                    print_scraping_progress(run_id)
+                    continue
             scraped = scrap_url(url=url, verbose=verbose, driver=driver)
             if scraped:
                 urls_manager.increment_scraping_run_counter(run_id, "completed_count")

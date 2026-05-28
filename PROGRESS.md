@@ -24,3 +24,12 @@
 - Added retry handling in `scrap_url` so retryable sniffing failures are retried before the final error is recorded on the URL.
 - Added tests for configured delay policy, retry success, and retry exhaustion.
 - Verification: `uv run pytest` passed with 133 tests.
+
+## 2026-05-28 22:16 UTC
+
+- Completed `.issues/04-support-headless-browser-runtime-configuration.md`.
+- Added config-driven browser runtime mapping for headless mode, Docker/Kubernetes-friendly Chrome arguments, and custom browser arguments.
+- Preserved existing local non-headless browser behavior while defaulting unknown/true browser settings to Chrome.
+- Improved browser startup error reporting so scraping records the affected URL when a browser cannot start.
+- Added tests for browser option mapping, startup error wrapping, sniff URL startup errors, and scrape failure recording.
+- Verification: `uv run pytest` passed with 138 tests.

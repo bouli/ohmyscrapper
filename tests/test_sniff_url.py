@@ -245,6 +245,24 @@ def test_get_url_creates_browser_when_config_requires_it(monkeypatch):
     ]
 
 
+def test_get_url_reports_browser_startup_error_with_url(monkeypatch):
+    cache = Mock()
+    cache.get.return_value = None
+    monkeypatch.setattr(sniff_url, "cache", cache)
+    monkeypatch.setattr(sniff_url.config, "get_sniffing", Mock(return_value=True))
+    monkeypatch.setattr(
+        sniff_url.browser,
+        "get_driver",
+        Mock(side_effect=RuntimeError("Unable to start chrome browser: missing")),
+    )
+
+    with pytest.raises(RuntimeError) as exc_info:
+        sniff_url.get_url("https://example.com")
+
+    assert "browser startup error for https://example.com" in str(exc_info.value)
+    assert "Unable to start chrome browser: missing" in str(exc_info.value)
+
+
 def test_get_url_falls_back_to_requests_when_driver_fails(monkeypatch, capsys):
     cache = Mock()
     cache.get.return_value = None

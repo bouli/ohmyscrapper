@@ -204,7 +204,10 @@ def get_url(url, driver=None):
         return cached_code
 
     if driver is None and config.get_sniffing("use-browser"):
-        driver = browser.get_driver()
+        try:
+            driver = browser.get_driver()
+        except Exception as exc:
+            raise RuntimeError(f"browser startup error for {url}: {exc}") from exc
 
     if driver is not None:
         try:
@@ -214,9 +217,8 @@ def get_url(url, driver=None):
             code = driver.page_source
             cache.set(content=code, cache_id=cache_prefix + url)
             return code
-        except:
-            print("error")
-            pass
+        except Exception as exc:
+            print(f"browser error while checking {url}: {exc}")
     code = requests.get(url=url, timeout=config.get_sniffing("timeout")).text
     cache.set(content=code, cache_id=cache_prefix + url)
     return code

@@ -515,6 +515,45 @@ def test_scrap_urls_creates_browser_once_when_enabled(monkeypatch, patched_url_m
     assert scrap_url.call_args_list[1].kwargs["driver"] is driver
 
 
+def test_scrap_urls_records_browser_startup_error_for_url(
+    monkeypatch,
+    patched_url_manager,
+):
+    urls = pd.DataFrame(
+        [
+            {"url": "https://example.com/one", "url_type": "job"},
+        ]
+    )
+    monkeypatch.setattr(scrap_urls.classify_urls, "classify_urls", Mock())
+    patched_url_manager["get_untouched_urls"].return_value = urls
+    monkeypatch.setattr(scrap_urls.random, "randint", Mock(return_value=1))
+    monkeypatch.setattr(scrap_urls.time, "sleep", Mock())
+    monkeypatch.setattr(scrap_urls.config, "get_sniffing", Mock(return_value=True))
+    monkeypatch.setattr(
+        scrap_urls.browser,
+        "get_driver",
+        Mock(side_effect=RuntimeError("Unable to start chrome browser: missing")),
+    )
+    monkeypatch.setattr(scrap_urls, "scrap_url", Mock())
+
+    scrap_urls.scrap_urls()
+
+    patched_url_manager["set_url_error"].assert_called_once_with(
+        url="https://example.com/one",
+        value=(
+            "browser startup error for https://example.com/one: "
+            "Unable to start chrome browser: missing"
+        ),
+    )
+    patched_url_manager["touch_url"].assert_called_once_with(
+        url="https://example.com/one"
+    )
+    patched_url_manager["increment_scraping_run_counter"].assert_called_once_with(
+        42, "failure_count"
+    )
+    scrap_urls.scrap_url.assert_not_called()
+
+
 def test_scrap_urls_recursive_mode_waits_and_calls_next_round(
     monkeypatch,
     patched_url_manager,

@@ -6,11 +6,11 @@ Make browser execution explicitly configurable for local, Docker, and Kubernetes
 
 ## Acceptance criteria
 
-- [ ] Headless browser mode can be enabled through configuration and/or CLI options consistent with existing project patterns.
-- [ ] Browser setup supports container-friendly options needed for Docker or Kubernetes execution.
-- [ ] Existing non-headless local browser behavior remains available.
-- [ ] Browser startup errors are reported clearly and do not obscure the URL being processed.
-- [ ] Tests cover the browser configuration mapping without requiring a real remote browser.
+- [x] Headless browser mode can be enabled through configuration and/or CLI options consistent with existing project patterns.
+- [x] Browser setup supports container-friendly options needed for Docker or Kubernetes execution.
+- [x] Existing non-headless local browser behavior remains available.
+- [x] Browser startup errors are reported clearly and do not obscure the URL being processed.
+- [x] Tests cover the browser configuration mapping without requiring a real remote browser.
 
 ## Blocked by
 
