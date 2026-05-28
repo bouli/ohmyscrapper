@@ -3,6 +3,7 @@ import os
 import random
 import time
 
+import requests
 import yaml
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -211,6 +212,8 @@ def _process_with_model(model, instructions):
 
     if provider_model["provider"] == "openai":
         return _process_with_openai(provider_model["model"], instructions)
+    if provider_model["provider"] == "ollama":
+        return _process_with_ollama(provider_model["model"], instructions)
 
     return _process_with_gemini(provider_model["model"], instructions)
 
@@ -227,6 +230,10 @@ def _provider_model(model):
         return {"provider": "google", "model": normalized_model.split(":", 1)[1]}
     if lower_model.startswith("google/"):
         return {"provider": "google", "model": normalized_model.split("/", 1)[1]}
+    if lower_model.startswith("ollama:"):
+        return {"provider": "ollama", "model": normalized_model.split(":", 1)[1]}
+    if lower_model.startswith("ollama/"):
+        return {"provider": "ollama", "model": normalized_model.split("/", 1)[1]}
 
     openai_prefixes = ("gpt-", "o1", "o3", "o4", "chatgpt-")
     if lower_model.startswith(openai_prefixes):
@@ -247,3 +254,14 @@ def _process_with_openai(model, instructions):
     client = OpenAI()
     response = client.responses.create(model=model, input=instructions)
     return str(response.output_text)
+
+
+def _process_with_ollama(model, instructions):
+    ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+    response = requests.post(
+        f"{ollama_host}/api/generate",
+        json={"model": model, "prompt": instructions, "stream": False},
+        timeout=300,
+    )
+    response.raise_for_status()
+    return str(response.json()["response"])

@@ -443,6 +443,61 @@ def test_process_with_ai_sends_prompt_to_openai_when_model_is_openai(monkeypatch
     set_empty.assert_called_once_with(1)
 
 
+def test_process_with_ai_sends_prompt_to_ollama_when_model_is_ollama(monkeypatch):
+    prompt = {
+        "model": "ollama:llama3.2",
+        "name": "jobs",
+        "description": "Find jobs",
+        "instructions": "Handle {ohmyscrapper_texts}",
+        "prompt_file": "prompt.md",
+    }
+    urls = pd.DataFrame([{"id": 1, "title": "Engineer", "description": "Build"}])
+    add_ai_log = Mock()
+    process_ai_response = Mock()
+    set_empty = Mock()
+    response = Mock()
+    response.json.return_value = {"response": "<positions></positions>"}
+
+    monkeypatch.setattr(process_with_ai, "_get_prompt", Mock(return_value=prompt))
+    monkeypatch.setattr(
+        process_with_ai.urls_manager,
+        "get_urls_by_url_type_for_ai_process",
+        Mock(return_value=urls),
+    )
+    monkeypatch.setattr(process_with_ai.urls_manager, "add_ai_log", add_ai_log)
+    monkeypatch.setattr(
+        process_with_ai.urls_manager,
+        "set_url_empty_ai_processed_by_id",
+        set_empty,
+    )
+    monkeypatch.setattr(process_with_ai, "process_ai_response", process_ai_response)
+    monkeypatch.setattr(process_with_ai.requests, "post", Mock(return_value=response))
+
+    result = process_with_ai.process_with_ai(recursive=False)
+
+    assert result is None
+    process_with_ai.requests.post.assert_called_once()
+    assert process_with_ai.requests.post.call_args.args == (
+        "http://localhost:11434/api/generate",
+    )
+    payload = process_with_ai.requests.post.call_args.kwargs["json"]
+    assert payload["model"] == "llama3.2"
+    assert payload["stream"] is False
+    instructions = payload["prompt"]
+    assert "{ohmyscrapper_texts}" not in instructions
+    assert "<id>1</id>" in instructions
+    response.raise_for_status.assert_called_once_with()
+    add_ai_log.assert_called_once_with(
+        instructions=instructions,
+        response="<positions></positions>",
+        model="ollama:llama3.2",
+        prompt_name="jobs",
+        prompt_file="prompt.md",
+    )
+    process_ai_response.assert_called_once_with(response="<positions></positions>")
+    set_empty.assert_called_once_with(1)
+
+
 def test_process_with_ai_stops_recursive_mode_at_budget_guard(monkeypatch):
     prompt = {
         "model": "gemini-test",
@@ -497,3 +552,13 @@ def test_process_with_model_defaults_to_gemini_and_allows_openai_prefix(monkeypa
         "openai-response"
     )
     openai.assert_called_once_with("gpt-4o-mini", "prompt")
+
+
+def test_process_with_model_allows_ollama_prefix(monkeypatch):
+    ollama = Mock(return_value="ollama-response")
+    monkeypatch.setattr(process_with_ai, "_process_with_ollama", ollama)
+
+    assert process_with_ai._process_with_model("ollama:llama3.2", "prompt") == (
+        "ollama-response"
+    )
+    ollama.assert_called_once_with("llama3.2", "prompt")
