@@ -7,6 +7,7 @@ import yaml
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from google import genai
+from openai import OpenAI
 
 import ohmyscrapper.models.urls_manager as urls_manager
 from ohmyscrapper.core import config
@@ -105,12 +106,7 @@ def process_with_ai(recursive=True, triggered_times=0, bypass_budget_control=Fal
         "{ohmyscrapper_texts}", texts
     )
 
-    # The client gets the API key from the environment variable `GEMINI_API_KEY`.
-    client = genai.Client()
-    response = client.models.generate_content(
-        model=prompt["model"], contents=prompt["instructions"]
-    )
-    response = str(response.text)
+    response = _process_with_model(prompt["model"], prompt["instructions"])
     urls_manager.add_ai_log(
         instructions=prompt["instructions"],
         response=response,
@@ -209,28 +205,45 @@ def _parse_prompt(prompts_path, prompt_file):
     return prompt
 
 
-# TODO: Separate gemini from basic function
+def _process_with_model(model, instructions):
+    model = str(model)
+    provider_model = _provider_model(model)
+
+    if provider_model["provider"] == "openai":
+        return _process_with_openai(provider_model["model"], instructions)
+
+    return _process_with_gemini(provider_model["model"], instructions)
+
+
+def _provider_model(model):
+    normalized_model = model.strip()
+    lower_model = normalized_model.lower()
+
+    if lower_model.startswith("openai:"):
+        return {"provider": "openai", "model": normalized_model.split(":", 1)[1]}
+    if lower_model.startswith("openai/"):
+        return {"provider": "openai", "model": normalized_model.split("/", 1)[1]}
+    if lower_model.startswith("google:"):
+        return {"provider": "google", "model": normalized_model.split(":", 1)[1]}
+    if lower_model.startswith("google/"):
+        return {"provider": "google", "model": normalized_model.split("/", 1)[1]}
+
+    openai_prefixes = ("gpt-", "o1", "o3", "o4", "chatgpt-")
+    if lower_model.startswith(openai_prefixes):
+        return {"provider": "openai", "model": normalized_model}
+
+    return {"provider": "google", "model": normalized_model}
+
+
 def _process_with_gemini(model, instructions):
-    response = """"""
-    return response
+    # The client gets the API key from the environment variable `GEMINI_API_KEY`.
+    client = genai.Client()
+    response = client.models.generate_content(model=model, contents=instructions)
+    return str(response.text)
 
 
 def _process_with_openai(model, instructions):
-    # import os
-    # from openai import OpenAI
-
-    # client = OpenAI(
-    #    # This is the default and can be omitted
-    #    api_key=os.environ.get("OPENAI_API_KEY"),
-    # )
-
-    # response = client.responses.create(
-    #    model="gpt-4o",
-    #    instructions="You are a coding assistant that talks like a pirate.",
-    #    input="How do I check if a Python object is an instance of a class?",
-    # )
-
-    # print(response.output_text)
-
-    response = """"""
-    return response
+    # The client gets the API key from the environment variable `OPENAI_API_KEY`.
+    client = OpenAI()
+    response = client.responses.create(model=model, input=instructions)
+    return str(response.output_text)

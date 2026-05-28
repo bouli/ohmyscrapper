@@ -394,6 +394,55 @@ def test_process_with_ai_sends_prompt_to_gemini_and_records_response(monkeypatch
     assert set_empty.call_args_list == [call(1), call(2)]
 
 
+def test_process_with_ai_sends_prompt_to_openai_when_model_is_openai(monkeypatch):
+    prompt = {
+        "model": "gpt-4o-mini",
+        "name": "jobs",
+        "description": "Find jobs",
+        "instructions": "Handle {ohmyscrapper_texts}",
+        "prompt_file": "prompt.md",
+    }
+    urls = pd.DataFrame([{"id": 1, "title": "Engineer", "description": "Build"}])
+    add_ai_log = Mock()
+    process_ai_response = Mock()
+    set_empty = Mock()
+    create = Mock(return_value=SimpleNamespace(output_text="<positions></positions>"))
+    client = SimpleNamespace(responses=SimpleNamespace(create=create))
+
+    monkeypatch.setattr(process_with_ai, "_get_prompt", Mock(return_value=prompt))
+    monkeypatch.setattr(
+        process_with_ai.urls_manager,
+        "get_urls_by_url_type_for_ai_process",
+        Mock(return_value=urls),
+    )
+    monkeypatch.setattr(process_with_ai.urls_manager, "add_ai_log", add_ai_log)
+    monkeypatch.setattr(
+        process_with_ai.urls_manager,
+        "set_url_empty_ai_processed_by_id",
+        set_empty,
+    )
+    monkeypatch.setattr(process_with_ai, "process_ai_response", process_ai_response)
+    monkeypatch.setattr(process_with_ai, "OpenAI", Mock(return_value=client))
+
+    result = process_with_ai.process_with_ai(recursive=False)
+
+    assert result is None
+    create.assert_called_once()
+    assert create.call_args.kwargs["model"] == "gpt-4o-mini"
+    instructions = create.call_args.kwargs["input"]
+    assert "{ohmyscrapper_texts}" not in instructions
+    assert "<id>1</id>" in instructions
+    add_ai_log.assert_called_once_with(
+        instructions=instructions,
+        response="<positions></positions>",
+        model="gpt-4o-mini",
+        prompt_name="jobs",
+        prompt_file="prompt.md",
+    )
+    process_ai_response.assert_called_once_with(response="<positions></positions>")
+    set_empty.assert_called_once_with(1)
+
+
 def test_process_with_ai_stops_recursive_mode_at_budget_guard(monkeypatch):
     prompt = {
         "model": "gemini-test",
@@ -433,6 +482,18 @@ def test_process_with_ai_stops_recursive_mode_at_budget_guard(monkeypatch):
     get_urls.assert_called_once_with()
 
 
-def test_process_with_gemini_and_openai_placeholders_return_empty_string():
-    assert process_with_ai._process_with_gemini("model", "instructions") == ""
-    assert process_with_ai._process_with_openai("model", "instructions") == ""
+def test_process_with_model_defaults_to_gemini_and_allows_openai_prefix(monkeypatch):
+    gemini = Mock(return_value="gemini-response")
+    openai = Mock(return_value="openai-response")
+    monkeypatch.setattr(process_with_ai, "_process_with_gemini", gemini)
+    monkeypatch.setattr(process_with_ai, "_process_with_openai", openai)
+
+    assert process_with_ai._process_with_model("unknown-model", "instructions") == (
+        "gemini-response"
+    )
+    gemini.assert_called_once_with("unknown-model", "instructions")
+
+    assert process_with_ai._process_with_model("openai:gpt-4o-mini", "prompt") == (
+        "openai-response"
+    )
+    openai.assert_called_once_with("gpt-4o-mini", "prompt")
