@@ -23,7 +23,7 @@ from ohmyscrapper.modules.untouch_all import untouch_all, untouch_all_urls_with_
 
 def main():
     parser = argparse.ArgumentParser(prog="ohmyscrapper")
-    parser.add_argument("--version", action="version", version="%(prog)s v0.9.6")
+    parser.add_argument("--version", action="version", version="%(prog)s v0.10.0")
 
     update()
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

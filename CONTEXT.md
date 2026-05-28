@@ -416,5 +416,5 @@ python -m ohmyscrapper export
 ---
 
 **Last Updated**: May 2026
-**Version**: 0.9.6
+**Version**: 0.10.0
 **Author**: @bouli
