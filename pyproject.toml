@@ -36,8 +36,13 @@ build-backend = "uv_build"
 [tool.bumpversion]
 tag = true
 tag_name = "v{new_version}"
-pre_commit_hooks = ["uvx isort ./src", "uvx black ./src", "git add src", "uv sync --upgrade", "git add uv.lock"]
+pre_commit_hooks = ["printf \"# CHANGELOG\n\n\" > CHANGELOG.md && git log v0.9.5..HEAD --format=\"* %h %s\" >> CHANGELOG.md", "git add CHANGELOG.md", "uvx isort ./src", "uvx black ./src", "git add src", "uv sync --upgrade", "git add uv.lock"]
 commit = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'v{current_version}..HEAD'
+replace = 'v{new_version}..HEAD'
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
