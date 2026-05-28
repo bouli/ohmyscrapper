@@ -358,53 +358,60 @@ def scrap_urls(
 
         policy = get_scraping_policy()
         proxy_pool = get_proxy_pool()
-        for index, url in urls.iterrows():
-            proxy = get_next_proxy(proxy_pool)
-            wait = get_scraping_delay(policy)
-            print(
-                "🐶 Scrapper is sleeping for", wait, "seconds before scraping next url..."
-            )
-            if wait > 0:
-                time.sleep(wait)
-
-            print("🐕 Scrapper is sniffing the url...")
-
-            active_driver = driver
-            close_active_driver = False
-            if active_driver is None and config.get_sniffing("use-browser"):
-                try:
-                    if proxy is None:
-                        active_driver = browser.get_driver()
-                        driver = active_driver
-                    else:
-                        active_driver = browser.get_driver(proxy=proxy)
-                        close_active_driver = True
-                except Exception as e:
-                    urls_manager.set_url_error(
-                        url=url["url"],
-                        value=f"browser startup error for {url['url']}: {e}",
-                    )
-                    urls_manager.touch_url(url=url["url"])
-                    urls_manager.increment_scraping_run_counter(
-                        run_id, "failure_count"
-                    )
-                    print(f"!!! browser startup error for {url['url']}: {e}")
-                    print_scraping_progress(run_id)
-                    continue
-            try:
-                scraped = scrap_url(
-                    url=url, verbose=verbose, driver=active_driver, proxy=proxy
+        browser_pool = None
+        if driver is None and config.get_sniffing("use-browser"):
+            browser_pool = browser.BrowserPool()
+        try:
+            for index, url in urls.iterrows():
+                proxy = get_next_proxy(proxy_pool)
+                wait = get_scraping_delay(policy)
+                print(
+                    "🐶 Scrapper is sleeping for",
+                    wait,
+                    "seconds before scraping next url...",
                 )
-                if scraped:
-                    urls_manager.increment_scraping_run_counter(
-                        run_id, "completed_count"
+                if wait > 0:
+                    time.sleep(wait)
+
+                print("🐕 Scrapper is sniffing the url...")
+
+                active_driver = driver
+                borrowed_driver = False
+                if browser_pool is not None:
+                    try:
+                        active_driver = browser_pool.acquire(proxy=proxy)
+                        borrowed_driver = True
+                    except Exception as e:
+                        urls_manager.set_url_error(
+                            url=url["url"],
+                            value=f"browser startup error for {url['url']}: {e}",
+                        )
+                        urls_manager.touch_url(url=url["url"])
+                        urls_manager.increment_scraping_run_counter(
+                            run_id, "failure_count"
+                        )
+                        print(f"!!! browser startup error for {url['url']}: {e}")
+                        print_scraping_progress(run_id)
+                        continue
+                try:
+                    scraped = scrap_url(
+                        url=url, verbose=verbose, driver=active_driver, proxy=proxy
                     )
-                else:
-                    urls_manager.increment_scraping_run_counter(run_id, "failure_count")
-                print_scraping_progress(run_id)
-            finally:
-                if close_active_driver and hasattr(active_driver, "quit"):
-                    active_driver.quit()
+                    if scraped:
+                        urls_manager.increment_scraping_run_counter(
+                            run_id, "completed_count"
+                        )
+                    else:
+                        urls_manager.increment_scraping_run_counter(
+                            run_id, "failure_count"
+                        )
+                    print_scraping_progress(run_id)
+                finally:
+                    if borrowed_driver:
+                        browser_pool.release(active_driver, proxy=proxy)
+        finally:
+            if browser_pool is not None:
+                browser_pool.close_all()
 
         n_urls = n_urls + len(urls)
         print(f"-- 🗃️ {n_urls} scraped urls...")

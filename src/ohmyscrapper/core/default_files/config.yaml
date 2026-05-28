@@ -22,6 +22,7 @@ sniffing:
   browser-headless: false
   browser-container-options: false
   browser-arguments: []
+  browser-pool-size: 1
   browser-waiting-time: 5
   round-sleeping: 10
   request-delay-min: 1

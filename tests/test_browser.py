@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -114,3 +114,77 @@ def test_get_driver_reports_browser_startup_errors(monkeypatch):
 
     with pytest.raises(RuntimeError, match="Unable to start chrome browser"):
         browser.get_driver()
+
+
+def test_get_browser_pool_size_reads_configured_value(monkeypatch):
+    patch_browser_config(monkeypatch, {"browser-pool-size": "3"})
+
+    assert browser.get_browser_pool_size() == 3
+
+
+def test_browser_pool_reuses_released_driver_for_same_proxy():
+    driver = Mock(name="driver")
+    driver_factory = Mock(return_value=driver)
+    pool = browser.BrowserPool(max_size=2, driver_factory=driver_factory)
+
+    first = pool.acquire(proxy="http://proxy-1:8080")
+    pool.release(first, proxy="http://proxy-1:8080")
+    second = pool.acquire(proxy="http://proxy-1:8080")
+
+    assert second is driver
+    driver_factory.assert_called_once_with(proxy="http://proxy-1:8080")
+    assert pool.total_drivers == 1
+
+    pool.release(second, proxy="http://proxy-1:8080")
+    pool.close_all()
+    driver.quit.assert_called_once_with()
+
+
+def test_browser_pool_evicts_idle_driver_when_pool_is_full():
+    first_driver = Mock(name="first_driver")
+    second_driver = Mock(name="second_driver")
+    driver_factory = Mock(side_effect=[first_driver, second_driver])
+    pool = browser.BrowserPool(max_size=1, driver_factory=driver_factory)
+
+    first = pool.acquire(proxy="http://proxy-1:8080")
+    pool.release(first, proxy="http://proxy-1:8080")
+    second = pool.acquire(proxy="http://proxy-2:8080")
+
+    assert second is second_driver
+    assert pool.total_drivers == 1
+    assert driver_factory.call_args_list == [
+        call(proxy="http://proxy-1:8080"),
+        call(proxy="http://proxy-2:8080"),
+    ]
+    first_driver.quit.assert_called_once_with()
+
+    pool.release(second, proxy="http://proxy-2:8080")
+    pool.close_all()
+    second_driver.quit.assert_called_once_with()
+
+
+def test_browser_pool_closes_released_driver_after_close_all():
+    driver = Mock(name="driver")
+    pool = browser.BrowserPool(max_size=1, driver_factory=Mock(return_value=driver))
+
+    acquired_driver = pool.acquire()
+    pool.close_all()
+    pool.release(acquired_driver)
+
+    driver.quit.assert_called_once_with()
+    assert pool.total_drivers == 0
+
+
+def test_browser_pool_releases_capacity_when_driver_start_fails():
+    driver = Mock(name="driver")
+    driver_factory = Mock(side_effect=[RuntimeError("missing"), driver])
+    pool = browser.BrowserPool(max_size=1, driver_factory=driver_factory)
+
+    with pytest.raises(RuntimeError, match="missing"):
+        pool.acquire()
+
+    assert pool.total_drivers == 0
+    acquired_driver = pool.acquire()
+    assert acquired_driver is driver
+    pool.release(acquired_driver)
+    pool.close_all()

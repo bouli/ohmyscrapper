@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-05-29 00:25 UTC
+
+- Completed `.issues/06-add-bounded-browser-pool-for-concurrent-scraping.md`.
+- Added configurable `sniffing.browser-pool-size` with validation and default size `1`.
+- Added a bounded `BrowserPool` that reuses compatible browser instances, evicts idle browsers when the pool is full, releases failed startup capacity, and closes all idle or returned browsers during cleanup.
+- Routed browser-backed scraping through the pool so each URL borrows and returns a browser while preserving externally supplied drivers.
+- Added tests for pool sizing, acquisition, release, bounded eviction, cleanup after run close, and startup failure capacity recovery.
+- Verification: `uv run pytest` passed with 149 tests.
+
 ## 2026-05-28 22:20 UTC
 
 - Completed `.issues/05-apply-proxy-rotation-to-scraping-requests.md`.
