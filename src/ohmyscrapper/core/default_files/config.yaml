@@ -30,3 +30,9 @@ sniffing:
   retry-count: 0
   retry-backoff: 0
   proxies: []
+
+queue:
+  enabled: false
+  broker-url: redis://localhost:6379/0
+  result-backend: redis://localhost:6379/0
+  task-name: ohmyscrapper.scrap_urls

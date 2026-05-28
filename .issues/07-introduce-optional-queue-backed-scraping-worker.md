@@ -6,11 +6,11 @@ Introduce Celery and Redis as an optional execution mode for distributed scrapin
 
 ## Acceptance criteria
 
-- [ ] Queue-backed execution is optional and local CLI scraping remains the default.
-- [ ] A scraping run can be enqueued and processed by a worker.
-- [ ] Worker progress updates the same persisted run status used by local scraping.
-- [ ] Queue and Redis configuration are documented in project configuration defaults.
-- [ ] Tests cover enqueue behavior and worker task execution with fakes or test doubles.
+- [x] Queue-backed execution is optional and local CLI scraping remains the default.
+- [x] A scraping run can be enqueued and processed by a worker.
+- [x] Worker progress updates the same persisted run status used by local scraping.
+- [x] Queue and Redis configuration are documented in project configuration defaults.
+- [x] Tests cover enqueue behavior and worker task execution with fakes or test doubles.
 
 ## Blocked by
 

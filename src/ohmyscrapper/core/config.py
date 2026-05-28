@@ -46,6 +46,12 @@ def get_sniffing(param):
     )
 
 
+def get_queue(param):
+    return config_files.get_param(
+        parent_param="queue", param=param, default_app_dir=default_app_dir
+    )
+
+
 def load_config(force_default=False):
     config_file_name = "config.yaml"
     config_params = config_files.create_and_read_config_file(

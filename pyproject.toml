@@ -23,6 +23,11 @@ dependencies = [
     "urlextract>=1.9.0",
 ]
 
+[project.optional-dependencies]
+queue = [
+    "celery[redis]>=5.5.0",
+]
+
 [project.urls]
 Repository = "https://github.com/bouli/ohmyscrapper"
 Changelog = "https://github.com/bouli/ohmyscrapper/releases/latest"

@@ -9,6 +9,7 @@ from ohmyscrapper.modules.load_txt import load_txt
 from ohmyscrapper.modules.merge_dbs import merge_dbs
 from ohmyscrapper.modules.process_with_ai import process_with_ai, reprocess_ai_history
 from ohmyscrapper.modules.scrap_urls import scrap_urls
+from ohmyscrapper.modules.scraping_queue import enqueue_scraping_run
 from ohmyscrapper.modules.seed import export_url_types_to_file, seed
 from ohmyscrapper.modules.show import (
     export_report,
@@ -118,6 +119,12 @@ def main():
         "--verbose", default=False, help="Run in verbose mode", action="store_true"
     )
     scrap_urls_parser.add_argument(
+        "--queue",
+        default=False,
+        help="Enqueue scraping through the optional Celery/Redis worker.",
+        action="store_true",
+    )
+    scrap_urls_parser.add_argument(
         "-input", default=None, help="File/Folder path or url for pre-loading."
     )
 
@@ -203,6 +210,20 @@ def main():
     if args.command == "scrap-urls":
         if args.input != None:
             load_txt(file_name=args.input, verbose=args.verbose)
+
+        if args.queue:
+            queued = enqueue_scraping_run(
+                recursive=args.recursive,
+                ignore_valid_prefix=args.ignore_type,
+                randomize=args.randomize,
+                only_parents=args.only_parents,
+                verbose=args.verbose,
+            )
+            print(
+                f"-- queued scraping run #{queued['run_id']} "
+                f"task={queued['task_id']}"
+            )
+            return
 
         scrap_urls(
             recursive=args.recursive,

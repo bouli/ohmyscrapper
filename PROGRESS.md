@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-05-28 22:27 UTC
+
+- Completed `.issues/07-introduce-optional-queue-backed-scraping-worker.md`.
+- Added optional Celery/Redis queue support through `scrap-urls --queue`, while keeping local CLI scraping as the default path.
+- Added a queue worker module that creates persisted scraping runs, enqueues work, and runs workers through the existing `scrap_urls(..., run_id=...)` flow so progress updates the same `scraping_runs` table.
+- Documented queue defaults in the generated configuration and added an optional `queue` dependency extra.
+- Added tests for enqueue behavior, worker task execution, missing Celery dependency reporting, and CLI queue routing.
+- Verification: `uv run pytest` passed with 153 tests.
+
 ## 2026-05-29 00:25 UTC
 
 - Completed `.issues/06-add-bounded-browser-pool-for-concurrent-scraping.md`.

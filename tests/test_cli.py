@@ -143,6 +143,40 @@ def test_scrap_urls_command_loads_optional_input_then_scrapes(monkeypatch):
     )
 
 
+def test_scrap_urls_command_can_enqueue_work(monkeypatch):
+    load_txt = patch_attr(monkeypatch, ohmyscrapper, "load_txt")
+    scrap_urls = patch_attr(monkeypatch, ohmyscrapper, "scrap_urls")
+    enqueue_scraping_run = patch_attr(
+        monkeypatch,
+        ohmyscrapper,
+        "enqueue_scraping_run",
+        Mock(return_value={"run_id": 12, "task_id": "task-12"}),
+    )
+
+    run_cli_with_common_patches(
+        monkeypatch,
+        "scrap-urls",
+        "-input",
+        "jobs.txt",
+        "--queue",
+        "--recursive",
+        "--ignore-type",
+        "--randomize",
+        "--only-parents",
+        "--verbose",
+    )
+
+    load_txt.assert_called_once_with(file_name="jobs.txt", verbose=True)
+    enqueue_scraping_run.assert_called_once_with(
+        recursive=True,
+        ignore_valid_prefix=True,
+        randomize=True,
+        only_parents=True,
+        verbose=True,
+    )
+    scrap_urls.assert_not_called()
+
+
 @pytest.mark.parametrize(
     ("args", "handler_name", "expected_args"),
     [
