@@ -242,6 +242,123 @@ def test_scrap_url_records_error_and_touches_url_when_sniffing_fails(
     )
 
 
+def test_get_scraping_policy_reads_configured_delay_and_retry_values(monkeypatch):
+    values = {
+        "request-delay-min": "2",
+        "request-delay-max": "4",
+        "retry-count": "3",
+        "retry-backoff": "0.5",
+    }
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_sniffing",
+        Mock(side_effect=lambda param: values[param]),
+    )
+    monkeypatch.setattr(scrap_urls.random, "randint", Mock(return_value=3))
+
+    policy = scrap_urls.get_scraping_policy()
+
+    assert policy == {
+        "request_delay_min": 2.0,
+        "request_delay_max": 4.0,
+        "retry_count": 3,
+        "retry_backoff": 0.5,
+    }
+    assert scrap_urls.get_scraping_delay(policy) == 3
+    scrap_urls.random.randint.assert_called_once_with(2, 4)
+
+
+def test_scrap_url_retries_retryable_failure_and_succeeds(
+    monkeypatch,
+    patched_url_manager,
+):
+    sniffing_config = {"job": {"bodytags": {"h1": "title"}}}
+    url_report = {"h1": "Title", "json": '{"h1": "Title"}'}
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_url_sniffing",
+        Mock(return_value=sniffing_config),
+    )
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_sniffing",
+        Mock(
+            side_effect=lambda param: {
+                "request-delay-min": 1,
+                "request-delay-max": 3,
+                "retry-count": 1,
+                "retry-backoff": 0.5,
+            }[param]
+        ),
+    )
+    monkeypatch.setattr(
+        scrap_urls.sniff_url,
+        "get_tags",
+        Mock(side_effect=[RuntimeError("temporary"), url_report]),
+    )
+    monkeypatch.setattr(scrap_urls, "process_sniffed_url", Mock())
+    monkeypatch.setattr(scrap_urls.time, "sleep", Mock())
+
+    result = scrap_urls.scrap_url({"url": "https://example.com/page", "url_type": "job"})
+
+    assert result is True
+    assert scrap_urls.sniff_url.get_tags.call_count == 2
+    scrap_urls.time.sleep.assert_called_once_with(0.5)
+    patched_url_manager["set_url_error"].assert_not_called()
+    patched_url_manager["set_url_json"].assert_called_once_with(
+        url="https://example.com/page",
+        value='{"h1": "Title"}',
+    )
+
+
+def test_scrap_url_records_final_error_after_retry_exhaustion(
+    monkeypatch,
+    patched_url_manager,
+):
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_url_sniffing",
+        Mock(return_value={"job": {"bodytags": {"h1": "title"}}}),
+    )
+    monkeypatch.setattr(
+        scrap_urls.config,
+        "get_sniffing",
+        Mock(
+            side_effect=lambda param: {
+                "request-delay-min": 1,
+                "request-delay-max": 3,
+                "retry-count": 2,
+                "retry-backoff": 0.25,
+            }[param]
+        ),
+    )
+    monkeypatch.setattr(
+        scrap_urls.sniff_url,
+        "get_tags",
+        Mock(
+            side_effect=[
+                RuntimeError("temporary"),
+                RuntimeError("still temporary"),
+                RuntimeError("dead"),
+            ]
+        ),
+    )
+    monkeypatch.setattr(scrap_urls.time, "sleep", Mock())
+
+    result = scrap_urls.scrap_url({"url": "https://example.com/page", "url_type": "job"})
+
+    assert result is False
+    assert scrap_urls.sniff_url.get_tags.call_count == 3
+    assert scrap_urls.time.sleep.call_args_list == [call(0.25), call(0.5)]
+    patched_url_manager["set_url_error"].assert_called_once_with(
+        url="https://example.com/page",
+        value="error on scrapping: dead",
+    )
+    patched_url_manager["touch_url"].assert_called_once_with(
+        url="https://example.com/page"
+    )
+
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
@@ -413,7 +530,15 @@ def test_scrap_urls_recursive_mode_waits_and_calls_next_round(
     monkeypatch.setattr(
         scrap_urls.config,
         "get_sniffing",
-        Mock(side_effect=[20, 20]),
+        Mock(
+            side_effect=lambda param: {
+                "round-sleeping": 20,
+                "request-delay-min": 1,
+                "request-delay-max": 3,
+                "retry-count": 0,
+                "retry-backoff": 0,
+            }[param]
+        ),
     )
     monkeypatch.setattr(scrap_urls, "scrap_url", Mock())
 

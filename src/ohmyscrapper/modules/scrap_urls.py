@@ -9,6 +9,85 @@ import ohmyscrapper.modules.sniff_url as sniff_url
 from ohmyscrapper.core import config
 
 
+DEFAULT_SCRAPING_POLICY = {
+    "request-delay-min": 1,
+    "request-delay-max": 3,
+    "retry-count": 0,
+    "retry-backoff": 0,
+}
+
+
+def _get_sniffing_policy_number(param, default, cast=float):
+    try:
+        value = config.get_sniffing(param)
+    except Exception:
+        return default
+
+    if value is None or isinstance(value, bool):
+        return default
+
+    try:
+        return cast(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Invalid sniffing.{param}: {value!r}") from exc
+
+
+def get_scraping_policy():
+    retry_count = _get_sniffing_policy_number(
+        "retry-count",
+        DEFAULT_SCRAPING_POLICY["retry-count"],
+        int,
+    )
+    request_delay_min = _get_sniffing_policy_number(
+        "request-delay-min",
+        DEFAULT_SCRAPING_POLICY["request-delay-min"],
+    )
+    request_delay_max = _get_sniffing_policy_number(
+        "request-delay-max",
+        DEFAULT_SCRAPING_POLICY["request-delay-max"],
+    )
+    retry_backoff = _get_sniffing_policy_number(
+        "retry-backoff",
+        DEFAULT_SCRAPING_POLICY["retry-backoff"],
+    )
+
+    if request_delay_min < 0:
+        raise ValueError("Invalid sniffing.request-delay-min: must be >= 0")
+    if request_delay_max < 0:
+        raise ValueError("Invalid sniffing.request-delay-max: must be >= 0")
+    if request_delay_max < request_delay_min:
+        raise ValueError(
+            "Invalid sniffing request delay policy: request-delay-max must be >= request-delay-min"
+        )
+    if retry_count < 0:
+        raise ValueError("Invalid sniffing.retry-count: must be >= 0")
+    if retry_backoff < 0:
+        raise ValueError("Invalid sniffing.retry-backoff: must be >= 0")
+
+    return {
+        "request_delay_min": request_delay_min,
+        "request_delay_max": request_delay_max,
+        "retry_count": retry_count,
+        "retry_backoff": retry_backoff,
+    }
+
+
+def get_scraping_delay(policy=None):
+    if policy is None:
+        policy = get_scraping_policy()
+
+    delay_min = policy["request_delay_min"]
+    delay_max = policy["request_delay_max"]
+
+    if delay_min == delay_max:
+        return delay_min
+
+    if float(delay_min).is_integer() and float(delay_max).is_integer():
+        return random.randint(int(delay_min), int(delay_max))
+
+    return random.uniform(delay_min, delay_max)
+
+
 def scrap_url(url, verbose=False, driver=None):
     if url["url_type"] is None:
         url["url_type"] = "generic"
@@ -16,37 +95,58 @@ def scrap_url(url, verbose=False, driver=None):
     if verbose:
         print("\n\n", url["url_type"] + ":", url["url"])
 
-    try:
-        url_type = url["url_type"]
-        sniffing_config = config.get_url_sniffing()
+    policy = get_scraping_policy()
+    retry_count = policy["retry_count"]
+    last_error = None
 
-        if url_type not in sniffing_config:
-            default_type_sniffing = {
-                "bodytags": {"h1": "title"},
-                "metatags": {
-                    "og:title": "title",
-                    "og:description": "description",
-                    "description": "description",
-                },
-            }
-            config.append_url_sniffing({url_type: default_type_sniffing})
+    for attempt in range(retry_count + 1):
+        try:
+            url_type = url["url_type"]
             sniffing_config = config.get_url_sniffing()
 
-        url_report = sniff_url.get_tags(
-            url=url["url"], sniffing_config=sniffing_config[url_type], driver=driver
-        )
-    except Exception as e:
-        e = str(e)
-        urls_manager.set_url_error(url=url["url"], value=f"error on scrapping: {e}")
-        urls_manager.touch_url(url=url["url"])
-        if verbose:
-            print("\n\n!!! ERROR FOR:", url["url"])
-            print(
-                "\n\n!!! you can check the URL using the command sniff-url",
-                url["url"],
-                "\n\n",
+            if url_type not in sniffing_config:
+                default_type_sniffing = {
+                    "bodytags": {"h1": "title"},
+                    "metatags": {
+                        "og:title": "title",
+                        "og:description": "description",
+                        "description": "description",
+                    },
+                }
+                config.append_url_sniffing({url_type: default_type_sniffing})
+                sniffing_config = config.get_url_sniffing()
+
+            url_report = sniff_url.get_tags(
+                url=url["url"],
+                sniffing_config=sniffing_config[url_type],
+                driver=driver,
             )
-        return False
+            break
+        except Exception as e:
+            last_error = e
+            if attempt < retry_count:
+                wait = policy["retry_backoff"] * (attempt + 1)
+                if verbose:
+                    print(
+                        f"\n\n!!! retrying {url['url']} after scrape error: {e}"
+                    )
+                if wait > 0:
+                    time.sleep(wait)
+                continue
+
+            urls_manager.set_url_error(
+                url=url["url"],
+                value=f"error on scrapping: {last_error}",
+            )
+            urls_manager.touch_url(url=url["url"])
+            if verbose:
+                print("\n\n!!! ERROR FOR:", url["url"])
+                print(
+                    "\n\n!!! you can check the URL using the command sniff-url",
+                    url["url"],
+                    "\n\n",
+                )
+            return False
 
     process_sniffed_url(
         url_report=url_report,
@@ -220,12 +320,14 @@ def scrap_urls(
             print("scrapping is over...")
             return
 
+        policy = get_scraping_policy()
         for index, url in urls.iterrows():
-            wait = random.randint(1, 3)
+            wait = get_scraping_delay(policy)
             print(
                 "🐶 Scrapper is sleeping for", wait, "seconds before scraping next url..."
             )
-            time.sleep(wait)
+            if wait > 0:
+                time.sleep(wait)
 
             print("🐕 Scrapper is sniffing the url...")
 

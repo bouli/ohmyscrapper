@@ -21,3 +21,7 @@ sniffing:
   use-browser: false
   browser-waiting-time: 5
   round-sleeping: 10
+  request-delay-min: 1
+  request-delay-max: 3
+  retry-count: 0
+  retry-backoff: 0
