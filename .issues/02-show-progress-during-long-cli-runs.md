@@ -6,11 +6,11 @@ Show live progress for long `scrap-urls` and `start` runs using the persisted sc
 
 ## Acceptance criteria
 
-- [ ] `ohmyscrapper scrap-urls` displays progress while URLs are being processed.
-- [ ] `ohmyscrapper start` displays progress across scraping work when it reaches that stage.
-- [ ] Progress output reflects completed, skipped, and failed URLs from the persisted run state.
-- [ ] Non-interactive or test execution remains stable and does not require a terminal UI.
-- [ ] Tests cover progress reporting behavior without depending on timing-sensitive output.
+- [x] `ohmyscrapper scrap-urls` displays progress while URLs are being processed.
+- [x] `ohmyscrapper start` displays progress across scraping work when it reaches that stage.
+- [x] Progress output reflects completed, skipped, and failed URLs from the persisted run state.
+- [x] Non-interactive or test execution remains stable and does not require a terminal UI.
+- [x] Tests cover progress reporting behavior without depending on timing-sensitive output.
 
 ## Blocked by
 

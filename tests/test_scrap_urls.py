@@ -1,3 +1,5 @@
+from contextlib import redirect_stdout
+from io import StringIO
 from unittest.mock import Mock, call
 
 import pandas as pd
@@ -19,6 +21,20 @@ def patched_url_manager(monkeypatch):
         "touch_url": Mock(),
         "get_untouched_urls": Mock(),
         "create_scraping_run": Mock(return_value=42),
+        "get_scraping_run": Mock(
+            return_value=pd.DataFrame(
+                [
+                    {
+                        "id": 42,
+                        "status": "running",
+                        "total_urls": 0,
+                        "completed_count": 0,
+                        "skipped_count": 0,
+                        "failure_count": 0,
+                    }
+                ]
+            )
+        ),
         "update_scraping_run_total": Mock(),
         "increment_scraping_run_counter": Mock(),
         "finish_scraping_run": Mock(),
@@ -238,6 +254,48 @@ def test_is_nan(value, expected):
     assert scrap_urls.isNaN(value) is expected
 
 
+def test_format_scraping_progress_includes_persisted_counters():
+    assert (
+        scrap_urls.format_scraping_progress(
+            {
+                "id": 7,
+                "status": "running",
+                "total_urls": 4,
+                "processed_count": 3,
+                "completed_count": 2,
+                "skipped_count": 1,
+                "failure_count": 0,
+            }
+        )
+        == "-- progress run #7 [running]: 3/4 processed (75%) completed=2 skipped=1 failed=0"
+    )
+
+
+def test_get_scraping_run_progress_reads_persisted_state(patched_url_manager):
+    patched_url_manager["get_scraping_run"].return_value = pd.DataFrame(
+        [
+            {
+                "id": 42,
+                "status": "running",
+                "total_urls": 5,
+                "completed_count": 2,
+                "skipped_count": 1,
+                "failure_count": 1,
+            }
+        ]
+    )
+
+    assert scrap_urls.get_scraping_run_progress(42) == {
+        "id": 42,
+        "status": "running",
+        "total_urls": 5,
+        "completed_count": 2,
+        "skipped_count": 1,
+        "failure_count": 1,
+        "processed_count": 4,
+    }
+
+
 def test_scrap_urls_returns_when_there_are_no_urls(monkeypatch, patched_url_manager):
     classify = Mock()
     monkeypatch.setattr(scrap_urls.classify_urls, "classify_urls", classify)
@@ -409,4 +467,50 @@ def test_scrap_urls_counts_failed_scrapes(monkeypatch, patched_url_manager):
     patched_url_manager["finish_scraping_run"].assert_called_once_with(
         42,
         status="completed",
+    )
+
+
+def test_scrap_urls_prints_progress_from_run_counters(monkeypatch, patched_url_manager):
+    urls = pd.DataFrame([{"url": "https://example.com/one", "url_type": "job"}])
+    patched_url_manager["get_scraping_run"].side_effect = [
+        pd.DataFrame(
+            [
+                {
+                    "id": 42,
+                    "status": "running",
+                    "total_urls": 1,
+                    "completed_count": 0,
+                    "skipped_count": 0,
+                    "failure_count": 0,
+                }
+            ]
+        ),
+        pd.DataFrame(
+            [
+                {
+                    "id": 42,
+                    "status": "running",
+                    "total_urls": 1,
+                    "completed_count": 1,
+                    "skipped_count": 0,
+                    "failure_count": 0,
+                }
+            ]
+        ),
+    ]
+    monkeypatch.setattr(scrap_urls.classify_urls, "classify_urls", Mock())
+    patched_url_manager["get_untouched_urls"].return_value = urls
+    monkeypatch.setattr(scrap_urls.random, "randint", Mock(return_value=1))
+    monkeypatch.setattr(scrap_urls.time, "sleep", Mock())
+    monkeypatch.setattr(scrap_urls.config, "get_sniffing", Mock(return_value=False))
+    monkeypatch.setattr(scrap_urls, "scrap_url", Mock(return_value=True))
+
+    output = StringIO()
+    with redirect_stdout(output):
+        scrap_urls.scrap_urls()
+
+    assert "-- progress run #42 [running]: 0/1 processed (0%)" in output.getvalue()
+    assert (
+        "-- progress run #42 [running]: 1/1 processed (100%) completed=1 skipped=0 failed=0"
+        in output.getvalue()
     )

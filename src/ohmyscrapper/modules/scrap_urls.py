@@ -142,6 +142,49 @@ def isNaN(num):
     return num != num
 
 
+def get_scraping_run_progress(run_id):
+    run = urls_manager.get_scraping_run(run_id)
+    if len(run) == 0:
+        return None
+
+    row = run.iloc[0]
+    completed_count = int(row["completed_count"])
+    skipped_count = int(row["skipped_count"])
+    failure_count = int(row["failure_count"])
+
+    return {
+        "id": int(row["id"]),
+        "status": row["status"],
+        "total_urls": int(row["total_urls"]),
+        "completed_count": completed_count,
+        "skipped_count": skipped_count,
+        "failure_count": failure_count,
+        "processed_count": completed_count + skipped_count + failure_count,
+    }
+
+
+def format_scraping_progress(progress):
+    total_urls = progress["total_urls"]
+    processed_count = progress["processed_count"]
+    percentage = 0
+    if total_urls > 0:
+        percentage = min(100, int((processed_count / total_urls) * 100))
+
+    return (
+        f"-- progress run #{progress['id']} [{progress['status']}]: "
+        f"{processed_count}/{total_urls} processed ({percentage}%) "
+        f"completed={progress['completed_count']} "
+        f"skipped={progress['skipped_count']} "
+        f"failed={progress['failure_count']}"
+    )
+
+
+def print_scraping_progress(run_id):
+    progress = get_scraping_run_progress(run_id)
+    if progress is not None:
+        print(format_scraping_progress(progress))
+
+
 def scrap_urls(
     recursive=False,
     ignore_valid_prefix=False,
@@ -167,6 +210,7 @@ def scrap_urls(
             limit=limit,
         )
         urls_manager.update_scraping_run_total(run_id, n_urls + len(urls))
+        print_scraping_progress(run_id)
 
         if len(urls) == 0:
             print("📭 no urls to scrap")
@@ -192,6 +236,7 @@ def scrap_urls(
                 urls_manager.increment_scraping_run_counter(run_id, "completed_count")
             else:
                 urls_manager.increment_scraping_run_counter(run_id, "failure_count")
+            print_scraping_progress(run_id)
 
         n_urls = n_urls + len(urls)
         print(f"-- 🗃️ {n_urls} scraped urls...")
