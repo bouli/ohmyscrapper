@@ -346,24 +346,16 @@ Located in `tests/`:
 
 ---
 
-## 🌟 Future Enhancement Ideas
+## 🌟 Tasks and enhancements to execute
 
-1. **Web Dashboard**: Streamlit or React UI
-2. **Task Queue**: Celery + Redis for distributed scraping
-3. **Browser Pool**: Multiple WebDriver instances
-4. **Proxy Rotation**: Avoid IP bans
-5. **Headless Mode**: Docker/Kubernetes support
-6. **API Endpoint**: FastAPI wrapper for programmatic access
-
----
-
-## 🤔 Potential Enhancements
-
-1. Rate Limiting: Add configurable delays between requests
-2. Error Handling: Better retry logic for failed scrapes
-3. Progress Tracking: Visual progress bars for long runs
-4. Cloud Integration: Deploy to AWS Lambda/GCP
-5. Dashboard: Web UI to monitor scraping jobs
+- [ ] **Dashboard**: Web UI to monitor scraping jobs
+- [ ] **Task Queue**: Celery + Redis for distributed scraping
+- [ ] **Browser Pool**: Multiple WebDriver instances
+- [ ] **Proxy Rotation**: Avoid IP bans
+- [ ] **Headless Mode**: Docker/Kubernetes support
+- [ ] **Rate Limiting**: Add configurable delays between requests
+- [ ] **Error Handling**: Better retry logic for failed scrapes
+- [ ] **Progress Tracking**: Visual progress bars for long runs
 
 ---
 ## 🧑‍💻 Development Tips
