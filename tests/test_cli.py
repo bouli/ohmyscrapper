@@ -38,7 +38,7 @@ def test_version_prints_package_version(monkeypatch):
             ohmyscrapper.main()
 
     assert exit_context.value.code == 0
-    assert output.getvalue().strip() == "ohmyscrapper v0.9.5"
+    assert output.getvalue().strip() == "ohmyscrapper v0.9.6"
     update.assert_called_once_with()
 
 

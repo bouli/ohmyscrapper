@@ -59,6 +59,11 @@ filename = "src/ohmyscrapper/__init__.py"
 [[tool.bumpversion.files]]
 filename = "Makefile"
 
+[[tool.bumpversion.files]]
+filename = "tests/test_cli.py"
+search = 'ohmyscrapper v{current_version}'
+replace = 'ohmyscrapper v{new_version}'
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
