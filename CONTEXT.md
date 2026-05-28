@@ -164,14 +164,24 @@ google:<model-name>
 openai:gpt-4o-mini
 openai:<model-name>
 gpt-<any>
+
+# Ollama (local)
+ollama:llama3.2
+ollama/<model-name>
 ```
+
+- Google remains the default provider for unprefixed non-OpenAI model names.
+- OpenAI is selected by `openai:` / `openai/` prefixes or known OpenAI model prefixes like `gpt-`.
+- Ollama is selected by `ollama:` / `ollama/` prefixes and calls the local Ollama API at `http://localhost:11434/api/generate`.
+- Set `OLLAMA_HOST` to override the local Ollama host.
 
 ### **AI Workflow**
 ```python
 process_with_ai():
 ├── Load prompt YAML
 ├── Build prompt with URL text
-├── Call LLM API
+├── Detect provider from model string
+├── Call Google, OpenAI, or local Ollama API
 ├── Parse XML-style response
 ├── Update DB with AI results
 ├── Mark URLs as processed
@@ -330,9 +340,8 @@ Located in `tests/`:
 | `unforgettable` | Custom caching |
 | `pydantic` | Data validation |
 | `pyyaml` | Config loading |
-| `sqlite-utils` | DB management |
-| `duckdb` | SQL processing |
-| `google-generativeai` | Google models |
+| `requests` | HTTP requests and local Ollama API calls |
+| `google-genai` | Google models |
 | `openai` | GPT models |
 
 ---
