@@ -1,5 +1,5 @@
 RUNNER=uv run src/ohmyscrapper/__init__.py
-.PHONY: clean, ai, start
+.PHONY: clean ai start tests
 
 clean_db:
 	rm -f db/local.db
@@ -46,3 +46,6 @@ prepare:
 	rm -rf dist
 	rm -rf build
 	git log v0.9.5..HEAD --oneline --format="* %h %s (%an)" > CHANGELOG.md
+
+tests:
+	uv run pytest
