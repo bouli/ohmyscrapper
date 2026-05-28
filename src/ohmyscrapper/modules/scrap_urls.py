@@ -46,7 +46,7 @@ def scrap_url(url, verbose=False, driver=None):
                 url["url"],
                 "\n\n",
             )
-        return
+        return False
 
     process_sniffed_url(
         url_report=url_report,
@@ -58,7 +58,7 @@ def scrap_url(url, verbose=False, driver=None):
     urls_manager.set_url_json(url=url["url"], value=url_report["json"])
     urls_manager.touch_url(url=url["url"])
 
-    return
+    return True
 
 
 def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
@@ -150,54 +150,82 @@ def scrap_urls(
     verbose=False,
     n_urls=0,
     driver=None,
+    run_id=None,
+    run_command="scrap-urls",
 ):
-    limit = 10
-    classify_urls.classify_urls()
-    urls = urls_manager.get_untouched_urls(
-        ignore_valid_prefix=ignore_valid_prefix,
-        randomize=randomize,
-        only_parents=only_parents,
-        limit=limit,
-    )
-    if len(urls) == 0:
-        print("📭 no urls to scrap")
-        if n_urls > 0:
-            print(f"-- 🗃️ {n_urls} scraped urls in total...")
-            print("scrapping is over...")
-        return
-    for index, url in urls.iterrows():
-        wait = random.randint(1, 3)
-        print(
-            "🐶 Scrapper is sleeping for", wait, "seconds before scraping next url..."
-        )
-        time.sleep(wait)
+    created_run = run_id is None
+    if created_run:
+        run_id = urls_manager.create_scraping_run(command=run_command)
 
-        print("🐕 Scrapper is sniffing the url...")
-
-        if driver is None and config.get_sniffing("use-browser"):
-            driver = browser.get_driver()
-        scrap_url(url=url, verbose=verbose, driver=driver)
-
-    n_urls = n_urls + len(urls)
-    print(f"-- 🗃️ {n_urls} scraped urls...")
-    classify_urls.classify_urls()
-    if recursive:
-        wait = random.randint(
-            int(config.get_sniffing("round-sleeping") / 2),
-            int(config.get_sniffing("round-sleeping")),
-        )
-        print(
-            f"🐶 Scrapper is sleeping for {wait} seconds before next round of {limit} urls"
-        )
-        time.sleep(wait)
-        scrap_urls(
-            recursive=recursive,
+    try:
+        limit = 10
+        classify_urls.classify_urls()
+        urls = urls_manager.get_untouched_urls(
             ignore_valid_prefix=ignore_valid_prefix,
             randomize=randomize,
             only_parents=only_parents,
-            verbose=verbose,
-            n_urls=n_urls,
-            driver=driver,
+            limit=limit,
         )
-    else:
-        print("scrapping is over...")
+        urls_manager.update_scraping_run_total(run_id, n_urls + len(urls))
+
+        if len(urls) == 0:
+            print("📭 no urls to scrap")
+            if n_urls > 0:
+                print(f"-- 🗃️ {n_urls} scraped urls in total...")
+            urls_manager.finish_scraping_run(run_id, status="completed")
+            print("scrapping is over...")
+            return
+
+        for index, url in urls.iterrows():
+            wait = random.randint(1, 3)
+            print(
+                "🐶 Scrapper is sleeping for", wait, "seconds before scraping next url..."
+            )
+            time.sleep(wait)
+
+            print("🐕 Scrapper is sniffing the url...")
+
+            if driver is None and config.get_sniffing("use-browser"):
+                driver = browser.get_driver()
+            scraped = scrap_url(url=url, verbose=verbose, driver=driver)
+            if scraped:
+                urls_manager.increment_scraping_run_counter(run_id, "completed_count")
+            else:
+                urls_manager.increment_scraping_run_counter(run_id, "failure_count")
+
+        n_urls = n_urls + len(urls)
+        print(f"-- 🗃️ {n_urls} scraped urls...")
+        classify_urls.classify_urls()
+        if recursive:
+            wait = random.randint(
+                int(config.get_sniffing("round-sleeping") / 2),
+                int(config.get_sniffing("round-sleeping")),
+            )
+            print(
+                f"🐶 Scrapper is sleeping for {wait} seconds before next round of {limit} urls"
+            )
+            time.sleep(wait)
+            scrap_urls(
+                recursive=recursive,
+                ignore_valid_prefix=ignore_valid_prefix,
+                randomize=randomize,
+                only_parents=only_parents,
+                verbose=verbose,
+                n_urls=n_urls,
+                driver=driver,
+                run_id=run_id,
+                run_command=run_command,
+            )
+        else:
+            urls_manager.finish_scraping_run(run_id, status="completed")
+            print("scrapping is over...")
+    except KeyboardInterrupt:
+        urls_manager.finish_scraping_run(
+            run_id,
+            status="interrupted",
+            error="Scraping interrupted by user",
+        )
+        raise
+    except Exception as e:
+        urls_manager.finish_scraping_run(run_id, status="failed", error=str(e))
+        raise

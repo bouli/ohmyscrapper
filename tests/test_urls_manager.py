@@ -44,7 +44,41 @@ def test_get_db_connection_creates_expected_tables(db_path):
         }
 
     assert db_path.exists()
-    assert {"urls", "ai_log", "urls_valid_prefix"} <= tables
+    assert {"urls", "ai_log", "urls_valid_prefix", "scraping_runs"} <= tables
+
+
+def test_scraping_run_lifecycle_persists_status_and_counters(db_path):
+    run_id = urls_manager.create_scraping_run(command="start", total_urls=3)
+
+    urls_manager.increment_scraping_run_counter(run_id, "completed_count")
+    urls_manager.increment_scraping_run_counter(run_id, "failure_count", amount=2)
+    urls_manager.update_scraping_run_total(run_id, 5)
+    urls_manager.finish_scraping_run(run_id, status="completed")
+
+    run = first_row(urls_manager.get_scraping_run(run_id))
+    runs = urls_manager.get_scraping_runs(limit=1)
+
+    assert len(runs) == 1
+    assert run["id"] == run_id
+    assert run["command"] == "start"
+    assert run["status"] == "completed"
+    assert run["total_urls"] == 5
+    assert run["completed_count"] == 1
+    assert run["skipped_count"] == 0
+    assert run["failure_count"] == 2
+    assert run["started_at"] == 1234567890
+    assert run["updated_at"] == 1234567890
+    assert run["finished_at"] == 1234567890
+
+
+def test_scraping_run_validates_status_and_counter_names(db_path):
+    run_id = urls_manager.create_scraping_run()
+
+    with pytest.raises(ValueError, match="Unknown scraping run counter"):
+        urls_manager.increment_scraping_run_counter(run_id, "unknown")
+
+    with pytest.raises(ValueError, match="Unknown scraping run status"):
+        urls_manager.finish_scraping_run(run_id, status="running")
 
 
 def test_add_url_normalizes_trims_title_and_ignores_duplicates(db_path):

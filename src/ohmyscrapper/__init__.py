@@ -254,6 +254,7 @@ def main():
             ignore_valid_prefix=True,
             randomize=False,
             only_parents=False,
+            run_command="start",
         )
         if args.ai:
             process_with_ai(bypass_budget_control=args.i_am_rich)

@@ -254,6 +254,7 @@ def test_start_command_runs_full_pipeline_with_ai_when_requested(monkeypatch):
         ignore_valid_prefix=True,
         randomize=False,
         only_parents=False,
+        run_command="start",
     )
     process_with_ai.assert_called_once_with(bypass_budget_control=True)
     assert export_urls.call_args_list == [
@@ -271,6 +272,7 @@ def test_start_command_runs_full_pipeline_with_ai_when_requested(monkeypatch):
                 "ignore_valid_prefix": True,
                 "randomize": False,
                 "only_parents": False,
+                "run_command": "start",
             },
         ),
         call("ai", {"bypass_budget_control": True}),

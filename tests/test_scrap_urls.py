@@ -18,6 +18,10 @@ def patched_url_manager(monkeypatch):
         "set_url_json": Mock(),
         "touch_url": Mock(),
         "get_untouched_urls": Mock(),
+        "create_scraping_run": Mock(return_value=42),
+        "update_scraping_run_total": Mock(),
+        "increment_scraping_run_counter": Mock(),
+        "finish_scraping_run": Mock(),
     }
     for name, mock in methods.items():
         monkeypatch.setattr(scrap_urls.urls_manager, name, mock)
@@ -130,7 +134,7 @@ def test_scrap_url_uses_generic_type_when_url_type_is_missing(
 
     result = scrap_urls.scrap_url(url=url, driver=driver)
 
-    assert result is None
+    assert result is True
     assert url["url_type"] == "generic"
     scrap_urls.sniff_url.get_tags.assert_called_once_with(
         url="https://example.com/page",
@@ -212,7 +216,7 @@ def test_scrap_url_records_error_and_touches_url_when_sniffing_fails(
         verbose=True,
     )
 
-    assert result is None
+    assert result is False
     patched_url_manager["set_url_error"].assert_called_once_with(
         url="https://example.com/page",
         value="error on scrapping: boom",
@@ -248,6 +252,14 @@ def test_scrap_urls_returns_when_there_are_no_urls(monkeypatch, patched_url_mana
         randomize=False,
         only_parents=True,
         limit=10,
+    )
+    patched_url_manager["create_scraping_run"].assert_called_once_with(
+        command="scrap-urls"
+    )
+    patched_url_manager["update_scraping_run_total"].assert_called_once_with(42, 3)
+    patched_url_manager["finish_scraping_run"].assert_called_once_with(
+        42,
+        status="completed",
     )
 
 
@@ -289,6 +301,14 @@ def test_scrap_urls_scrapes_rows_without_browser_when_config_disables_it(
     assert scrap_url.call_args_list[1].kwargs["url"].equals(urls.iloc[1])
     assert scrap_url.call_args_list[1].kwargs["verbose"] is True
     assert scrap_url.call_args_list[1].kwargs["driver"] is None
+    assert patched_url_manager["increment_scraping_run_counter"].call_args_list == [
+        call(42, "completed_count"),
+        call(42, "completed_count"),
+    ]
+    patched_url_manager["finish_scraping_run"].assert_called_once_with(
+        42,
+        status="completed",
+    )
 
 
 def test_scrap_urls_creates_browser_once_when_enabled(monkeypatch, patched_url_manager):
@@ -365,3 +385,28 @@ def test_scrap_urls_recursive_mode_waits_and_calls_next_round(
             limit=10,
         ),
     ]
+    patched_url_manager["finish_scraping_run"].assert_called_once_with(
+        42,
+        status="completed",
+    )
+
+
+def test_scrap_urls_counts_failed_scrapes(monkeypatch, patched_url_manager):
+    urls = pd.DataFrame([{"url": "https://example.com/one", "url_type": "job"}])
+    monkeypatch.setattr(scrap_urls.classify_urls, "classify_urls", Mock())
+    patched_url_manager["get_untouched_urls"].return_value = urls
+    monkeypatch.setattr(scrap_urls.random, "randint", Mock(return_value=1))
+    monkeypatch.setattr(scrap_urls.time, "sleep", Mock())
+    monkeypatch.setattr(scrap_urls.config, "get_sniffing", Mock(return_value=False))
+    monkeypatch.setattr(scrap_urls, "scrap_url", Mock(return_value=False))
+
+    scrap_urls.scrap_urls()
+
+    patched_url_manager["increment_scraping_run_counter"].assert_called_once_with(
+        42,
+        "failure_count",
+    )
+    patched_url_manager["finish_scraping_run"].assert_called_once_with(
+        42,
+        status="completed",
+    )

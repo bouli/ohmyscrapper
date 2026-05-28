@@ -22,9 +22,9 @@ def get_db_path():
 
 
 def get_db_connection():
-    if not os.path.exists(get_db_path()):
-        create_tables(sqlite3.connect(get_db_path()))
-    return sqlite3.connect(get_db_path())
+    connection = sqlite3.connect(get_db_path())
+    create_tables(connection)
+    return connection
 
 
 def use_connection(func):
@@ -53,6 +53,10 @@ def create_tables(conn):
     c.execute(
         "CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)"
     )
+    c.execute(
+        "CREATE TABLE IF NOT EXISTS scraping_runs (id INTEGER PRIMARY KEY, command TEXT, status TEXT, total_urls INTEGER DEFAULT 0, completed_count INTEGER DEFAULT 0, skipped_count INTEGER DEFAULT 0, failure_count INTEGER DEFAULT 0, started_at DATETIME, finished_at DATETIME, updated_at DATETIME, error TEXT)"
+    )
+    conn.commit()
 
 
 def update_db():
@@ -127,6 +131,77 @@ def get_urls(limit=0):
 
     df = pd.read_sql_query(sql, conn)
     return df
+
+
+@use_connection
+def create_scraping_run(command="scrap-urls", total_urls=0):
+    now = int(time.time())
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO scraping_runs (command, status, total_urls, completed_count, skipped_count, failure_count, started_at, updated_at) VALUES (?, ?, ?, 0, 0, 0, ?, ?)",
+        (command, "running", int(total_urls), now, now),
+    )
+    conn.commit()
+    return c.lastrowid
+
+
+@use_connection
+def get_scraping_run(run_id):
+    df = pd.read_sql_query(
+        "SELECT * FROM scraping_runs WHERE id = ?",
+        conn,
+        params=(int(run_id),),
+    )
+    return df
+
+
+@use_connection
+def get_scraping_runs(limit=0):
+    sql = "SELECT * FROM scraping_runs ORDER BY started_at DESC, id DESC"
+    params = ()
+    if limit > 0:
+        sql += " LIMIT ?"
+        params = (int(limit),)
+    return pd.read_sql_query(sql, conn, params=params)
+
+
+@use_connection
+def update_scraping_run_total(run_id, total_urls):
+    c = conn.cursor()
+    c.execute(
+        "UPDATE scraping_runs SET total_urls = ?, updated_at = ? WHERE id = ?",
+        (int(total_urls), int(time.time()), int(run_id)),
+    )
+    conn.commit()
+
+
+@use_connection
+def increment_scraping_run_counter(run_id, counter, amount=1):
+    valid_counters = {"completed_count", "skipped_count", "failure_count"}
+    if counter not in valid_counters:
+        raise ValueError(f"Unknown scraping run counter: {counter}")
+
+    c = conn.cursor()
+    c.execute(
+        f"UPDATE scraping_runs SET {counter} = {counter} + ?, updated_at = ? WHERE id = ?",
+        (int(amount), int(time.time()), int(run_id)),
+    )
+    conn.commit()
+
+
+@use_connection
+def finish_scraping_run(run_id, status="completed", error=None):
+    valid_statuses = {"completed", "failed", "interrupted"}
+    if status not in valid_statuses:
+        raise ValueError(f"Unknown scraping run status: {status}")
+
+    now = int(time.time())
+    c = conn.cursor()
+    c.execute(
+        "UPDATE scraping_runs SET status = ?, finished_at = ?, updated_at = ?, error = ? WHERE id = ?",
+        (status, now, now, error, int(run_id)),
+    )
+    conn.commit()
 
 
 @use_connection
