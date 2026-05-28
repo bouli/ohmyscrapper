@@ -9,7 +9,8 @@ from ohmyscrapper.core import config
 def _increment_file_name(text_file_content, file_name):
     print(f"reading and loading file `{file_name}`... ")
     with open(file_name, "r") as f:
-        return text_file_content + f.read()
+        separator = "" if text_file_content == "" else "\n"
+        return text_file_content + separator + f.read()
 
 
 def load_txt(file_name="input", verbose=False):
