@@ -121,16 +121,11 @@ def get_urls_valid_prefix(limit=0):
 # TODO: pagination required
 @use_connection
 def get_urls(limit=0):
+    sql = "SELECT * FROM urls ORDER BY history ASC, url_type DESC, last_touch DESC"
     if limit > 0:
-        df = pd.read_sql_query(
-            f"SELECT * FROM urls LIMIT {limit} ORDER BY history ASC, url_type DESC, last_touch DESC",
-            conn,
-        )
-    else:
-        df = pd.read_sql_query(
-            f"SELECT * FROM urls ORDER BY history ASC, url_type DESC, last_touch DESC",
-            conn,
-        )
+        sql += f" LIMIT {limit}"
+
+    df = pd.read_sql_query(sql, conn)
     return df
 
 
@@ -220,10 +215,8 @@ def add_url(url, title=None, parent_url=None):
     if title is not None:
         title = title.strip()
 
-    if parent_url is None:
-        parent_url = None
-
-    parent_url = str(parent_url)
+    if parent_url is not None:
+        parent_url = str(parent_url)
 
     if len(get_url_by_url(url)) == 0:
         c.execute(
@@ -277,6 +270,7 @@ def set_url_title(url, value):
 
 @use_connection
 def set_url_title_by_id(id, value):
+    id = int(id)
     value = str(value).strip()
 
     c = conn.cursor()
@@ -286,6 +280,7 @@ def set_url_title_by_id(id, value):
 
 @use_connection
 def set_url_ai_processed_by_id(id, json_str):
+    id = int(id)
     value = 1
     value = str(value).strip()
     c = conn.cursor()
@@ -298,6 +293,7 @@ def set_url_ai_processed_by_id(id, json_str):
 
 @use_connection
 def set_url_empty_ai_processed_by_id(id, json_str="empty result"):
+    id = int(id)
     value = 1
     value = str(value).strip()
     c = conn.cursor()
