@@ -166,6 +166,21 @@ def get_scraping_runs(limit=0):
 
 
 @use_connection
+def get_recent_url_errors(limit=10):
+    sql = """
+    SELECT id, url, url_type, title, error, last_touch, created_at
+    FROM urls
+    WHERE history = 0 AND error IS NOT NULL AND error != ''
+    ORDER BY COALESCE(last_touch, created_at, 0) DESC, id DESC
+    """
+    params = ()
+    if limit > 0:
+        sql += " LIMIT ?"
+        params = (int(limit),)
+    return pd.read_sql_query(sql, conn, params=params)
+
+
+@use_connection
 def update_scraping_run_total(run_id, total_urls):
     c = conn.cursor()
     c.execute(

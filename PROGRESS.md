@@ -1,5 +1,14 @@
 # Progress
 
+## 2026-05-29 00:45 UTC
+
+- Completed `.issues/08-add-local-dashboard-for-scraping-jobs.md`.
+- Added `ohmyscrapper dashboard` with configurable local host and port.
+- Added a stdlib HTTP dashboard that lists persisted scraping runs and renders run detail counters with recent URL scrape errors.
+- Added a URL-manager query for recent active URL errors so the dashboard uses existing persisted scraping data.
+- Documented the dashboard command in `README.md`.
+- Added tests for dashboard data reads, rendered run states, error ordering, and CLI dashboard routing.
+
 ## 2026-05-28 22:27 UTC
 
 - Completed `.issues/07-introduce-optional-queue-backed-scraping-worker.md`.

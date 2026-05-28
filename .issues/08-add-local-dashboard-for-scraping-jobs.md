@@ -6,11 +6,11 @@ Add a minimal local web dashboard for monitoring scraping jobs. The dashboard sh
 
 ## Acceptance criteria
 
-- [ ] A local dashboard can be started from the project using a documented command.
-- [ ] The dashboard lists recent scraping runs with status, timestamps, and progress.
-- [ ] A run detail view shows counters and recent scrape errors.
-- [ ] Dashboard data comes from the same persisted run records used by CLI progress.
-- [ ] Tests cover the dashboard data path and at least one rendered run state.
+- [x] A local dashboard can be started from the project using a documented command.
+- [x] The dashboard lists recent scraping runs with status, timestamps, and progress.
+- [x] A run detail view shows counters and recent scrape errors.
+- [x] Dashboard data comes from the same persisted run records used by CLI progress.
+- [x] Tests cover the dashboard data path and at least one rendered run state.
 
 ## Blocked by
 

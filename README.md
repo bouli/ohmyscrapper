@@ -102,6 +102,12 @@ ohmyscrapper export --file=output/urls-simplified.csv --simplify
 ohmyscrapper report
 ```
 
+To monitor recent scraping jobs locally, start the dashboard:
+```shell
+ohmyscrapper dashboard
+```
+Then open `http://127.0.0.1:8765`. Use `--host` and `--port` to bind a different local address.
+
 
 That's the basic usage!
 But you can understand more using the help:

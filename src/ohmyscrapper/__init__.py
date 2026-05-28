@@ -5,6 +5,7 @@ from unforgettable import unforgettable
 from ohmyscrapper.core import config
 from ohmyscrapper.core.config import update
 from ohmyscrapper.modules.classify_urls import classify_urls
+from ohmyscrapper.modules.dashboard import start_dashboard
 from ohmyscrapper.modules.load_txt import load_txt
 from ohmyscrapper.modules.merge_dbs import merge_dbs
 from ohmyscrapper.modules.process_with_ai import process_with_ai, reprocess_ai_history
@@ -170,6 +171,11 @@ def main():
     merge_parser = subparsers.add_parser("merge_dbs", help="Merge databases.")
 
     clean_cache_parser = subparsers.add_parser("cleancache", help="Clean cache.")
+    dashboard_parser = subparsers.add_parser(
+        "dashboard", help="Start a local scraping jobs dashboard."
+    )
+    dashboard_parser.add_argument("--host", default="127.0.0.1")
+    dashboard_parser.add_argument("--port", default=8765, type=int)
     args = parser.parse_args()
 
     if args.command == "classify-urls":
@@ -287,6 +293,10 @@ def main():
     if args.command == "cleancache":
         cache = unforgettable(cache_folder=config.get_dir("cache"))
         cache.clean()
+        return
+
+    if args.command == "dashboard":
+        start_dashboard(host=args.host, port=args.port)
 
 
 if __name__ == "__main__":
