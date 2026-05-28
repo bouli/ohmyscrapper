@@ -348,14 +348,16 @@ Located in `tests/`:
 
 ## 🌟 Tasks and enhancements to execute
 
-- [ ] **Dashboard**: Web UI to monitor scraping jobs
-- [ ] **Task Queue**: Celery + Redis for distributed scraping
-- [ ] **Browser Pool**: Multiple WebDriver instances
-- [ ] **Proxy Rotation**: Avoid IP bans
-- [ ] **Headless Mode**: Docker/Kubernetes support
-- [ ] **Rate Limiting**: Add configurable delays between requests
-- [ ] **Error Handling**: Better retry logic for failed scrapes
-- [ ] **Progress Tracking**: Visual progress bars for long runs
+The executable issue breakdown for these tasks lives in [`.issues/`](.issues/):
+
+- [Persist scraping run status](.issues/01-persist-scraping-run-status.md)
+- [Show progress during long CLI runs](.issues/02-show-progress-during-long-cli-runs.md)
+- [Add configurable retry and rate-limit policy](.issues/03-add-configurable-retry-and-rate-limit-policy.md)
+- [Support headless browser runtime configuration](.issues/04-support-headless-browser-runtime-configuration.md)
+- [Apply proxy rotation to scraping requests](.issues/05-apply-proxy-rotation-to-scraping-requests.md)
+- [Add bounded browser pool for concurrent scraping](.issues/06-add-bounded-browser-pool-for-concurrent-scraping.md)
+- [Introduce optional queue-backed scraping worker](.issues/07-introduce-optional-queue-backed-scraping-worker.md)
+- [Add local dashboard for scraping jobs](.issues/08-add-local-dashboard-for-scraping-jobs.md)
 
 ---
 ## 🧑‍💻 Development Tips
