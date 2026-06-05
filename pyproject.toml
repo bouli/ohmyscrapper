@@ -77,5 +77,6 @@ replace = '**Version**: {new_version}'
 
 [dependency-groups]
 dev = [
+    "coverage>=7.14.1",
     "pytest>=9.0.3",
 ]
