@@ -153,7 +153,7 @@ def _get_prompt():
     )
 
     default_prompt = """---
-model: "gemini-2.5-flash"
+model: "google/gemini-2.5-flash"
 name: "default-prompt"
 description: "Put here your prompt description."
 ---
