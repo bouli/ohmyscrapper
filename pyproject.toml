@@ -69,12 +69,6 @@ filename = "tests/test_cli.py"
 search = 'ohmyscrapper v{current_version}'
 replace = 'ohmyscrapper v{new_version}'
 
-[[tool.bumpversion.files]]
-filename = "CONTEXT.md"
-search = '**Version**: {current_version}'
-replace = '**Version**: {new_version}'
-
-
 [dependency-groups]
 dev = [
     "coverage>=7.14.1",
