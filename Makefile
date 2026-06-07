@@ -45,7 +45,7 @@ build:
 prepare:
 	rm -rf dist
 	rm -rf build
-	git log v0.10.1..HEAD --oneline --format="* %h %s (%an)" > CHANGELOG.md
+	git log v0.10.2..HEAD --oneline --format="* %h %s (%an)" > CHANGELOG.md
 
 tests:
 	uv run pytest

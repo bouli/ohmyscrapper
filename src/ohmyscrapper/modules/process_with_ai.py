@@ -261,7 +261,7 @@ def _process_with_ollama(model, instructions):
     response = requests.post(
         f"{ollama_host}/api/generate",
         json={"model": model, "prompt": instructions, "stream": False},
-        #timeout=300, this request will wait indefinitely for the server to respond.
+        # timeout=300, this request will wait indefinitely for the server to respond.
     )
     response.raise_for_status()
     return str(response.json()["response"])
