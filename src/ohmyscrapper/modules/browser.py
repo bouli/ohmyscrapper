@@ -5,7 +5,6 @@ from selenium import webdriver
 
 from ohmyscrapper.core.config import get_sniffing
 
-
 CONTAINER_BROWSER_ARGUMENTS = [
     "--no-sandbox",
     "--disable-dev-shm-usage",
@@ -92,9 +91,8 @@ def build_options(browser_name=None, proxy=None):
         elif browser_name not in {"safari", "ie"}:
             _add_argument(options, "--headless=new")
 
-    if (
-        browser_name not in {"firefox", "safari", "ie"}
-        and _as_bool(_get_sniffing_value("browser-container-options", False))
+    if browser_name not in {"firefox", "safari", "ie"} and _as_bool(
+        _get_sniffing_value("browser-container-options", False)
     ):
         for argument in CONTAINER_BROWSER_ARGUMENTS:
             _add_argument(options, argument)
@@ -135,7 +133,9 @@ class BrowserPool:
     def __init__(self, max_size=None, driver_factory=None):
         default_size = get_browser_pool_size()
         self.max_size = _as_positive_int(max_size, default_size)
-        self.driver_factory = driver_factory if driver_factory is not None else get_driver
+        self.driver_factory = (
+            driver_factory if driver_factory is not None else get_driver
+        )
         self._available = defaultdict(list)
         self._total_drivers = 0
         self._closed = False
@@ -192,9 +192,7 @@ class BrowserPool:
         with self._condition:
             self._closed = True
             available_drivers = [
-                driver
-                for drivers in self._available.values()
-                for driver in drivers
+                driver for drivers in self._available.values() for driver in drivers
             ]
             self._available.clear()
             self._total_drivers -= len(available_drivers)

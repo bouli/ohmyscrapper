@@ -8,7 +8,6 @@ import ohmyscrapper.modules.load_txt as load_txt
 import ohmyscrapper.modules.sniff_url as sniff_url
 from ohmyscrapper.core import config
 
-
 DEFAULT_SCRAPING_POLICY = {
     "request-delay-min": 1,
     "request-delay-max": 3,
@@ -163,9 +162,7 @@ def scrap_url(url, verbose=False, driver=None, proxy=None):
             if attempt < retry_count:
                 wait = policy["retry_backoff"] * (attempt + 1)
                 if verbose:
-                    print(
-                        f"\n\n!!! retrying {url['url']} after scrape error: {e}"
-                    )
+                    print(f"\n\n!!! retrying {url['url']} after scrape error: {e}")
                 if wait > 0:
                     time.sleep(wait)
                 continue

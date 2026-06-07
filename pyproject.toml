@@ -1,6 +1,6 @@
 [project]
 name = "ohmyscrapper"
-version = "0.10.0"
+version = "0.10.1"
 license = "MIT"
 description = "OhMyScrapper scrapes texts and urls looking for links and jobs-data to create a final report with general information about job positions."
 readme = "README.md"
@@ -42,7 +42,7 @@ build-backend = "uv_build"
 [tool.bumpversion]
 tag = true
 tag_name = "v{new_version}"
-pre_commit_hooks = ["printf \"# CHANGELOG\n\n\" > CHANGELOG.md && git log v0.10.0..HEAD --format=\"* %h %s\" >> CHANGELOG.md", "git add CHANGELOG.md", "uvx isort ./src", "uvx black ./src", "git add src", "uv sync --upgrade", "git add uv.lock"]
+pre_commit_hooks = ["printf \"# CHANGELOG\n\n\" > CHANGELOG.md && git log v0.10.1..HEAD --format=\"* %h %s\" >> CHANGELOG.md", "git add CHANGELOG.md", "uvx isort ./src", "uvx black ./src", "git add src", "uv sync --upgrade", "git add uv.lock"]
 commit = true
 
 [[tool.bumpversion.files]]

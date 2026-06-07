@@ -171,9 +171,7 @@ def render_run_detail_page(run_id, error_limit=10):
             )
         error_rows = (
             "<table><thead><tr><th>URL</th><th>Type</th><th>Error</th>"
-            "<th>Recorded</th></tr></thead><tbody>"
-            + "".join(rows)
-            + "</tbody></table>"
+            "<th>Recorded</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
         )
 
     body = f"""
