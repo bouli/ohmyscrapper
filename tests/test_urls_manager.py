@@ -136,6 +136,24 @@ def test_url_valid_prefix_seed_lifecycle(db_path):
     assert urls_manager.get_urls_valid_prefix().empty
 
 
+def test_url_manager_queries_handle_sql_sensitive_values(db_path):
+    url_type = "engineer's role"
+    url_prefix = "https://example.com/jobs/O'Reilly/%"
+    url = "https://example.com/sql-sensitive"
+
+    urls_manager.add_urls_valid_prefix(url_prefix, url_type)
+    prefix = first_row(urls_manager.get_urls_valid_prefix_by_type(url_type))
+    urls_manager.add_url(url)
+    row_id = first_row(urls_manager.get_url_by_url(url))["id"]
+    urls_manager.set_url_type_by_id(row_id, url_type)
+
+    assert prefix["url_prefix"] == url_prefix
+    assert first_row(urls_manager.get_urls_valid_prefix_by_id(prefix["id"]))[
+        "url_type"
+    ] == url_type
+    assert first_row(urls_manager.get_urls_by_url_type(url_type))["url"] == url
+
+
 def test_url_field_setters_update_existing_rows(db_path):
     url = "https://example.com/job"
     urls_manager.add_url(url)
