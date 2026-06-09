@@ -1,12 +1,11 @@
-import glob
 import os
 import sqlite3
 import time
-from urllib.parse import urlparse, urlunparse
 
 import pandas as pd
 
 from ohmyscrapper.core import config
+from ohmyscrapper.models import db_schema, merge_store, scraping_runs_store, url_store
 
 
 def get_db_dir():
@@ -23,7 +22,7 @@ def get_db_path():
 
 def get_db_connection():
     connection = sqlite3.connect(get_db_path())
-    create_tables(connection)
+    db_schema.create_tables(connection)
     return connection
 
 
@@ -41,30 +40,11 @@ def use_connection(func):
 
 
 def create_tables(conn):
-
-    c = conn.cursor()
-    c.execute(
-        "CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, url_type STRING, parent_url TEXT, url TEXT UNIQUE, url_destiny TEXT, title TEXT, error TEXT, description TEXT, description_links INTEGER DEFAULT 0, json TEXT, json_ai TEXT, ai_processed INTEGER DEFAULT 0, history INTEGER DEFAULT 0, last_touch DATETIME, created_at DATETIME)"
-    )
-    c.execute(
-        "CREATE TABLE IF NOT EXISTS ai_log (id INTEGER PRIMARY KEY, instructions STRING, response STRING, model STRING, prompt_file STRING, prompt_name STRING, created_at DATETIME)"
-    )
-
-    c.execute(
-        "CREATE TABLE IF NOT EXISTS urls_valid_prefix (id INTEGER PRIMARY KEY, url_prefix TEXT UNIQUE, url_type TEXT)"
-    )
-    c.execute(
-        "CREATE TABLE IF NOT EXISTS scraping_runs (id INTEGER PRIMARY KEY, command TEXT, status TEXT, total_urls INTEGER DEFAULT 0, completed_count INTEGER DEFAULT 0, skipped_count INTEGER DEFAULT 0, failure_count INTEGER DEFAULT 0, started_at DATETIME, finished_at DATETIME, updated_at DATETIME, error TEXT)"
-    )
-    conn.commit()
+    db_schema.create_tables(conn)
 
 
 def update_db():
-    try:
-        c = conn.cursor()
-        c.execute("ALTER TABLE urls RENAME COLUMN h1 TO title")
-    except sqlite3.OperationalError:
-        pass
+    db_schema.update_db(conn)
 
 
 def seeds(seeds=None):
@@ -139,211 +119,83 @@ def get_urls_valid_prefix(limit=0):
 # TODO: pagination required
 @use_connection
 def get_urls(limit=0):
-    sql = "SELECT * FROM urls ORDER BY history ASC, url_type DESC, last_touch DESC"
-    params = ()
-    if limit > 0:
-        sql += " LIMIT ?"
-        params = (int(limit),)
-
-    df = pd.read_sql_query(sql, conn, params=params)
-    return df
+    return url_store.get_urls(conn, limit=limit)
 
 
 @use_connection
 def create_scraping_run(command="scrap-urls", total_urls=0):
-    now = int(time.time())
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO scraping_runs (command, status, total_urls, completed_count, skipped_count, failure_count, started_at, updated_at) VALUES (?, ?, ?, 0, 0, 0, ?, ?)",
-        (command, "running", int(total_urls), now, now),
+    return scraping_runs_store.create_scraping_run(
+        conn, time, command=command, total_urls=total_urls
     )
-    conn.commit()
-    return c.lastrowid
 
 
 @use_connection
 def get_scraping_run(run_id):
-    df = pd.read_sql_query(
-        "SELECT * FROM scraping_runs WHERE id = ?",
-        conn,
-        params=(int(run_id),),
-    )
-    return df
+    return scraping_runs_store.get_scraping_run(conn, run_id)
 
 
 @use_connection
 def get_scraping_runs(limit=0):
-    sql = "SELECT * FROM scraping_runs ORDER BY started_at DESC, id DESC"
-    params = ()
-    if limit > 0:
-        sql += " LIMIT ?"
-        params = (int(limit),)
-    return pd.read_sql_query(sql, conn, params=params)
+    return scraping_runs_store.get_scraping_runs(conn, limit=limit)
 
 
 @use_connection
 def get_recent_url_errors(limit=10):
-    sql = """
-    SELECT id, url, url_type, title, error, last_touch, created_at
-    FROM urls
-    WHERE history = 0 AND error IS NOT NULL AND error != ''
-    ORDER BY COALESCE(last_touch, created_at, 0) DESC, id DESC
-    """
-    params = ()
-    if limit > 0:
-        sql += " LIMIT ?"
-        params = (int(limit),)
-    return pd.read_sql_query(sql, conn, params=params)
+    return url_store.get_recent_url_errors(conn, limit=limit)
 
 
 @use_connection
 def update_scraping_run_total(run_id, total_urls):
-    c = conn.cursor()
-    c.execute(
-        "UPDATE scraping_runs SET total_urls = ?, updated_at = ? WHERE id = ?",
-        (int(total_urls), int(time.time()), int(run_id)),
-    )
-    conn.commit()
+    scraping_runs_store.update_scraping_run_total(conn, time, run_id, total_urls)
 
 
 @use_connection
 def increment_scraping_run_counter(run_id, counter, amount=1):
-    valid_counters = {"completed_count", "skipped_count", "failure_count"}
-    if counter not in valid_counters:
-        raise ValueError(f"Unknown scraping run counter: {counter}")
-
-    c = conn.cursor()
-    c.execute(
-        f"UPDATE scraping_runs SET {counter} = {counter} + ?, updated_at = ? WHERE id = ?",
-        (int(amount), int(time.time()), int(run_id)),
+    scraping_runs_store.increment_scraping_run_counter(
+        conn, time, run_id, counter, amount=amount
     )
-    conn.commit()
 
 
 @use_connection
 def finish_scraping_run(run_id, status="completed", error=None):
-    valid_statuses = {"completed", "failed", "interrupted"}
-    if status not in valid_statuses:
-        raise ValueError(f"Unknown scraping run status: {status}")
-
-    now = int(time.time())
-    c = conn.cursor()
-    c.execute(
-        "UPDATE scraping_runs SET status = ?, finished_at = ?, updated_at = ?, error = ? WHERE id = ?",
-        (status, now, now, error, int(run_id)),
+    scraping_runs_store.finish_scraping_run(
+        conn, time, run_id, status=status, error=error
     )
-    conn.commit()
 
 
 @use_connection
 def get_urls_report():
-    sql = """
-    WITH parent_url AS (
-        SELECT parent_url FROM urls WHERE parent_url IS NOT NULL AND parent_url != '' GROUP BY parent_url
-    ),
-    parents AS (
-        SELECT
-            u.id,
-            u.url,
-            u.title
-            FROM urls u
-                INNER JOIN parent_url p
-                    ON u.url = p.parent_url
-    )
-    SELECT
-        u.id,
-        u.url_type,
-        u.url,
-        COALESCE(u.title, p.title) as title,
-        p.url as parent_url,
-        p.title as parent_title
-        FROM urls u
-        LEFT JOIN parents p
-            ON u.parent_url = p.url
-        WHERE
-            u.history = 0
-            AND u.url NOT IN (SELECT url FROM parents)
-        ORDER BY url_type DESC
-    """
-    df = pd.read_sql_query(sql, conn)
-
-    return df
+    return url_store.get_urls_report(conn)
 
 
 @use_connection
 def get_url_by_url(url):
-    url = clean_url(url)
-    df = pd.read_sql_query(
-        "SELECT * FROM urls WHERE url = ?",
-        conn,
-        params=(url,),
-    )
-
-    return df
+    return url_store.get_url_by_url(conn, url)
 
 
 @use_connection
 def get_url_by_id(id):
-    df = pd.read_sql_query(
-        "SELECT * FROM urls WHERE id = ?",
-        conn,
-        params=(int(id),),
-    )
-
-    return df
+    return url_store.get_url_by_id(conn, id)
 
 
 @use_connection
 def get_urls_by_url_type(url_type):
-    df = pd.read_sql_query(
-        "SELECT * FROM urls WHERE history = 0 AND url_type = ?",
-        conn,
-        params=(url_type,),
-    )
-    return df
+    return url_store.get_urls_by_url_type(conn, url_type)
 
 
 @use_connection
 def get_urls_by_url_type_for_ai_process(limit=10):
-    df = pd.read_sql_query(
-        "SELECT * FROM urls WHERE history = 0 AND (title IS NOT NULL OR description IS NOT NULL) AND ai_processed = 0 LIMIT ?",
-        conn,
-        params=(int(limit),),
-    )
-    return df
+    return url_store.get_urls_by_url_type_for_ai_process(conn, limit=limit)
 
 
 @use_connection
 def get_url_like_unclassified(like_condition):
-    df = pd.read_sql_query(
-        "SELECT * FROM urls WHERE history = 0 AND url LIKE ? AND url_type IS NULL",
-        conn,
-        params=(like_condition,),
-    )
-    return df
+    return url_store.get_url_like_unclassified(conn, like_condition)
 
 
 @use_connection
 def add_url(url, title=None, parent_url=None):
-    if url[:1] == "/":
-        return
-    url = clean_url(url)
-    c = conn.cursor()
-
-    if title is not None:
-        title = title.strip()
-
-    if parent_url is not None:
-        parent_url = str(parent_url)
-
-    if len(get_url_by_url(url)) == 0:
-        c.execute(
-            "INSERT INTO urls (url, title, parent_url, created_at, ai_processed, description_links, history) VALUES (?, ?, ?, ?, 0, 0, 0)",
-            (url, title, parent_url, int(time.time())),
-        )
-        conn.commit()
-
-    return get_url_by_url(url)
+    return url_store.add_url(conn, time, url, title=title, parent_url=parent_url)
 
 
 @use_connection
@@ -469,70 +321,34 @@ def set_url_error(url, value):
 
 @use_connection
 def set_url_type_by_id(url_id, url_type):
-    c = conn.cursor()
-    c.execute(
-        "UPDATE urls SET url_type = ?, last_touch = NULL WHERE id = ?",
-        (url_type, int(url_id)),
-    )
-    conn.commit()
+    url_store.set_url_type_by_id(conn, url_id, url_type)
 
 
 def clean_url(url):
-    if url[0:7] == "http://":
-        url = "https://" + url[7:]
-
-    if url[0:8] != "https://":
-        url = "https://" + url
-    url = url.split("#")[0]
-    old_query = urlparse(url).query.split("&")
-    new_query = []
-    for i in old_query:
-        if i[0:4] != "utm_":
-            new_query.append(i)
-
-    url = urlunparse(urlparse(url)._replace(query="&".join(new_query))).replace("'", "")
-    return url
+    return url_store.clean_url(url)
 
 
 @use_connection
 def get_untouched_urls(
     limit=10, randomize=True, ignore_valid_prefix=False, only_parents=True
 ):
-    where_sql = ""
-    if not ignore_valid_prefix:
-        where_sql += " AND url_type IS NOT NULL "
-
-    if only_parents:
-        where_sql += " AND (parent_url = '' OR parent_url IS NULL) "
-
-    if randomize:
-        random_sql = " RANDOM() "
-    else:
-        random_sql = " created_at DESC "
-    sql = f"SELECT * FROM urls WHERE 1 = 1 AND history = 0 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT ?"
-    df = pd.read_sql_query(sql, conn, params=(int(limit),))
-    return df
+    return url_store.get_untouched_urls(
+        conn,
+        limit=limit,
+        randomize=randomize,
+        ignore_valid_prefix=ignore_valid_prefix,
+        only_parents=only_parents,
+    )
 
 
 @use_connection
 def touch_url(url):
-    url = clean_url(url)
-    c = conn.cursor()
-    c.execute("UPDATE urls SET last_touch = ? WHERE url = ?", (int(time.time()), url))
-    conn.commit()
+    url_store.touch_url(conn, time, url)
 
 
 @use_connection
 def untouch_url(url):
-    url = clean_url(url)
-    url = str(url.strip())
-
-    c = conn.cursor()
-    c.execute(
-        "UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE url = ?",
-        (url,),
-    )
-    conn.commit()
+    url_store.untouch_url(conn, url)
 
 
 @use_connection
@@ -566,43 +382,19 @@ def set_all_urls_as_history():
 
 
 def merge_dbs() -> None:
-    production_db_file = get_db_path()
-    db_number = -1
-    dir = get_db_dir()
-    list_of_files = glob.glob(dir + "/*.db")
-    list_of_files.remove(production_db_file)
-    if len(list_of_files) > 0:
-        print("\nAvailable dbs:")
-        for index, file in enumerate(list_of_files):
-            print(index, ":", file)
-        while db_number < 0 or db_number >= len(list_of_files):
-            db_number = int(input("Choose the db to merge: "))
-
-        print(list_of_files[db_number])
-        source_conn = sqlite3.connect(list_of_files[db_number])
-        df = pd.read_sql_query("SELECT * FROM urls", source_conn)
-        for index, row in df.iterrows():
-            merge_url(
-                row["url"],
-                f"merged from {list_of_files[db_number]}",
-                row["last_touch"],
-                row["created_at"],
-                row["description"],
-                row["json"],
-            )
+    merge_store.merge_dbs(get_db_path, get_db_dir, merge_url)
 
 
 @use_connection
 def merge_url(url, title, last_touch, created_at, description, json):
-    url = clean_url(url)
-    c = conn.cursor()
-
-    if title is not None:
-        title = title.strip()
-
-    if len(get_url_by_url(url)) == 0:
-        c.execute(
-            "INSERT INTO urls (url, title, last_touch , created_at, history, ai_processed, description_links, description, json) VALUES (?, ?, ?, ?, 1, 0, 0, ? , ?)",
-            (url, title, last_touch, created_at, description, json),
-        )
-        conn.commit()
+    merge_store.merge_url(
+        conn,
+        clean_url,
+        get_url_by_url,
+        url,
+        title,
+        last_touch,
+        created_at,
+        description,
+        json,
+    )
