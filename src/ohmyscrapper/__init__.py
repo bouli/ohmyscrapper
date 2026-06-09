@@ -220,7 +220,7 @@ def main():
         return
 
     if args.command == "scrap-urls":
-        if args.input != None:
+        if args.input is not None:
             load_txt(file_name=args.input, verbose=args.verbose)
 
         if args.queue:
@@ -277,7 +277,7 @@ def main():
 
     if args.command == "start":
         seed()
-        if args.input != None:
+        if args.input is not None:
             load_txt(file_name=args.input)
         else:
             load_txt()

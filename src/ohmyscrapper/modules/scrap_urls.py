@@ -271,10 +271,6 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
         )
 
 
-def isNaN(num):
-    return num != num
-
-
 def get_scraping_run_progress(run_id):
     run = urls_manager.get_scraping_run(run_id)
     if len(run) == 0:

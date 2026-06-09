@@ -67,7 +67,9 @@ def update_db():
         pass
 
 
-def seeds(seeds={}):
+def seeds(seeds=None):
+    if seeds is None:
+        seeds = {}
 
     for url_type, url_prefix in seeds.items():
         add_urls_valid_prefix(url_prefix, url_type)

@@ -405,18 +405,6 @@ def test_scrap_url_records_final_error_after_retry_exhaustion(
     )
 
 
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        (float("nan"), True),
-        (1.0, False),
-        ("text", False),
-    ],
-)
-def test_is_nan(value, expected):
-    assert scrap_urls.isNaN(value) is expected
-
-
 def test_format_scraping_progress_includes_persisted_counters():
     assert (
         scrap_urls.format_scraping_progress(
