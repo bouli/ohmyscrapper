@@ -19,7 +19,7 @@ dependencies = [
     "requests>=2.32.5",
     "rich>=14.2.0",
     "selenium>=4.39.0",
-    "unforgettable==0.4.0",
+    "unforgettable~=0.4.0",
     "urlextract>=1.9.0",
 ]
 
