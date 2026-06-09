@@ -80,7 +80,6 @@ def test_seed_command_forwards_reset_flag(monkeypatch):
     ("command", "handler_name"),
     [
         ("untouch-all", "untouch_all"),
-        ("untouch-errors", "untouch_all_urls_with_errors"),
         ("report", "export_report"),
         ("merge_dbs", "merge_dbs"),
     ],
@@ -93,6 +92,30 @@ def test_simple_commands_call_their_handlers(
     run_cli_with_common_patches(monkeypatch, command)
 
     handler.assert_called_once_with()
+
+
+def test_untouch_errors_command_excludes_warnings_by_default(monkeypatch):
+    untouch_all_urls_with_errors = patch_attr(
+        monkeypatch,
+        ohmyscrapper,
+        "untouch_all_urls_with_errors",
+    )
+
+    run_cli_with_common_patches(monkeypatch, "untouch-errors")
+
+    untouch_all_urls_with_errors.assert_called_once_with(include_warnings=False)
+
+
+def test_untouch_errors_command_can_include_warnings(monkeypatch):
+    untouch_all_urls_with_errors = patch_attr(
+        monkeypatch,
+        ohmyscrapper,
+        "untouch_all_urls_with_errors",
+    )
+
+    run_cli_with_common_patches(monkeypatch, "untouch-errors", "--include-warnings")
+
+    untouch_all_urls_with_errors.assert_called_once_with(include_warnings=True)
 
 
 def test_sniff_url_command_builds_sniffing_config(monkeypatch):

@@ -32,5 +32,23 @@ def test_untouch_all_urls_with_errors_delegates_to_urls_manager(
     result = untouch_all.untouch_all_urls_with_errors()
 
     assert result is None
-    untouch_all_urls_with_errors.assert_called_once_with()
+    untouch_all_urls_with_errors.assert_called_once_with(include_warnings=False)
+    assert "urls with errors have been untouched" in capsys.readouterr().out
+
+
+def test_untouch_all_urls_with_errors_can_include_warnings(
+    monkeypatch,
+    capsys,
+):
+    untouch_all_urls_with_errors = Mock()
+    monkeypatch.setattr(
+        untouch_all.urls_manager,
+        "untouch_all_urls_with_errors",
+        untouch_all_urls_with_errors,
+    )
+
+    result = untouch_all.untouch_all_urls_with_errors(include_warnings=True)
+
+    assert result is None
+    untouch_all_urls_with_errors.assert_called_once_with(include_warnings=True)
     assert "urls with errors have been untouched" in capsys.readouterr().out

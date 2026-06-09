@@ -284,6 +284,38 @@ def test_bulk_untouch_operations_reset_active_urls_only(db_path):
     )["last_touch"] == 1234567890
 
 
+def test_untouch_errors_can_include_active_warnings(db_path):
+    urls_manager.add_url("https://example.com/active-error")
+    urls_manager.add_url("https://example.com/active-warning")
+
+    for url in [
+        "https://example.com/active-error",
+        "https://example.com/active-warning",
+    ]:
+        row_id = first_row(urls_manager.get_url_by_url(url))["id"]
+        urls_manager.set_url_type_by_id(row_id, "job")
+        urls_manager.touch_url(url)
+
+    urls_manager.set_url_error("https://example.com/active-error", "error timeout")
+    urls_manager.set_url_error("https://example.com/active-warning", "warning empty")
+
+    urls_manager.untouch_all_urls_with_errors(include_warnings=True)
+
+    active_error = first_row(
+        urls_manager.get_url_by_url("https://example.com/active-error")
+    )
+    active_warning = first_row(
+        urls_manager.get_url_by_url("https://example.com/active-warning")
+    )
+
+    assert active_error["last_touch"] is None
+    assert active_error["url_type"] is None
+    assert active_error["error"] is None
+    assert active_warning["last_touch"] is None
+    assert active_warning["url_type"] is None
+    assert active_warning["error"] is None
+
+
 def test_get_urls_report_excludes_parent_and_inherits_parent_title(db_path):
     parent = "https://example.com/company"
     child = "https://example.com/job"
