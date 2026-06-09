@@ -33,7 +33,7 @@ def use_connection(func):
         with get_db_connection() as conn:
             try:
                 return func(*args, **kwargs)
-            except:
+            except sqlite3.OperationalError:
                 update_db()
                 return func(*args, **kwargs)
 
@@ -63,7 +63,7 @@ def update_db():
     try:
         c = conn.cursor()
         c.execute("ALTER TABLE urls RENAME COLUMN h1 TO title")
-    except:
+    except sqlite3.OperationalError:
         pass
 
 

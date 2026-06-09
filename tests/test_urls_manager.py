@@ -1,4 +1,5 @@
 import sqlite3
+from unittest.mock import Mock
 
 import pytest
 
@@ -79,6 +80,40 @@ def test_scraping_run_validates_status_and_counter_names(db_path):
 
     with pytest.raises(ValueError, match="Unknown scraping run status"):
         urls_manager.finish_scraping_run(run_id, status="running")
+
+
+def test_use_connection_retries_after_sqlite_operational_error(db_path, monkeypatch):
+    update_db = Mock()
+    monkeypatch.setattr(urls_manager, "update_db", update_db)
+    calls = []
+
+    @urls_manager.use_connection
+    def flaky_operation():
+        calls.append("called")
+        if len(calls) == 1:
+            raise sqlite3.OperationalError("no such column: h1")
+        return "ok"
+
+    assert flaky_operation() == "ok"
+    assert calls == ["called", "called"]
+    update_db.assert_called_once_with()
+
+
+def test_use_connection_does_not_retry_non_sqlite_errors(db_path, monkeypatch):
+    update_db = Mock()
+    monkeypatch.setattr(urls_manager, "update_db", update_db)
+    calls = []
+
+    @urls_manager.use_connection
+    def broken_operation():
+        calls.append("called")
+        raise ValueError("bad input")
+
+    with pytest.raises(ValueError, match="bad input"):
+        broken_operation()
+
+    assert calls == ["called"]
+    update_db.assert_not_called()
 
 
 def test_add_url_normalizes_trims_title_and_ignores_duplicates(db_path):

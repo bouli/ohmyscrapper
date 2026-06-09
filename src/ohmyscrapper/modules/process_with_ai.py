@@ -190,7 +190,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
             return False
         try:
             prompt = prompts[int(input_prompt)]
-        except:
+        except (ValueError, KeyError):
             print("! Invalid prompt\n")
             prompt = _get_prompt()
     return prompt
