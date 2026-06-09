@@ -42,10 +42,9 @@ def load_txt(file_name="input", verbose=False):
             dir_files = input_folder
         else:
             dir_files = file_name
-        text_files = os.listdir(dir_files)
-        for file in text_files:
-            if not file.endswith(".txt"):
-                text_files.remove(file)
+        text_files = sorted(
+            file for file in os.listdir(dir_files) if file.endswith(".txt")
+        )
         if len(text_files) == 0:
             print(f"No text files found in {input_folder} directory!")
             return
