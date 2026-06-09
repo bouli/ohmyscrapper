@@ -87,7 +87,9 @@ def reset_seeds():
 def add_urls_valid_prefix(url_prefix, url_type):
 
     df = pd.read_sql_query(
-        f"SELECT * FROM urls_valid_prefix WHERE url_prefix = '{url_prefix}'", conn
+        "SELECT * FROM urls_valid_prefix WHERE url_prefix = ?",
+        conn,
+        params=(url_prefix,),
     )
     if len(df) == 0:
         c = conn.cursor()
@@ -101,14 +103,20 @@ def add_urls_valid_prefix(url_prefix, url_type):
 @use_connection
 def get_urls_valid_prefix_by_type(url_type):
     df = pd.read_sql_query(
-        f"SELECT * FROM urls_valid_prefix WHERE url_type = '{url_type}'", conn
+        "SELECT * FROM urls_valid_prefix WHERE url_type = ?",
+        conn,
+        params=(url_type,),
     )
     return df
 
 
 @use_connection
 def get_urls_valid_prefix_by_id(id):
-    df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix WHERE id = '{id}'", conn)
+    df = pd.read_sql_query(
+        "SELECT * FROM urls_valid_prefix WHERE id = ?",
+        conn,
+        params=(int(id),),
+    )
     return df
 
 
@@ -116,9 +124,13 @@ def get_urls_valid_prefix_by_id(id):
 @use_connection
 def get_urls_valid_prefix(limit=0):
     if limit > 0:
-        df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix LIMIT {limit}", conn)
+        df = pd.read_sql_query(
+            "SELECT * FROM urls_valid_prefix LIMIT ?",
+            conn,
+            params=(int(limit),),
+        )
     else:
-        df = pd.read_sql_query(f"SELECT * FROM urls_valid_prefix", conn)
+        df = pd.read_sql_query("SELECT * FROM urls_valid_prefix", conn)
     return df
 
 
@@ -126,10 +138,12 @@ def get_urls_valid_prefix(limit=0):
 @use_connection
 def get_urls(limit=0):
     sql = "SELECT * FROM urls ORDER BY history ASC, url_type DESC, last_touch DESC"
+    params = ()
     if limit > 0:
-        sql += f" LIMIT {limit}"
+        sql += " LIMIT ?"
+        params = (int(limit),)
 
-    df = pd.read_sql_query(sql, conn)
+    df = pd.read_sql_query(sql, conn, params=params)
     return df
 
 
@@ -257,14 +271,22 @@ def get_urls_report():
 @use_connection
 def get_url_by_url(url):
     url = clean_url(url)
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE url = '{url}'", conn)
+    df = pd.read_sql_query(
+        "SELECT * FROM urls WHERE url = ?",
+        conn,
+        params=(url,),
+    )
 
     return df
 
 
 @use_connection
 def get_url_by_id(id):
-    df = pd.read_sql_query(f"SELECT * FROM urls WHERE id = '{id}'", conn)
+    df = pd.read_sql_query(
+        "SELECT * FROM urls WHERE id = ?",
+        conn,
+        params=(int(id),),
+    )
 
     return df
 
@@ -272,7 +294,9 @@ def get_url_by_id(id):
 @use_connection
 def get_urls_by_url_type(url_type):
     df = pd.read_sql_query(
-        f"SELECT * FROM urls WHERE history = 0 AND url_type = '{url_type}'", conn
+        "SELECT * FROM urls WHERE history = 0 AND url_type = ?",
+        conn,
+        params=(url_type,),
     )
     return df
 
@@ -280,8 +304,9 @@ def get_urls_by_url_type(url_type):
 @use_connection
 def get_urls_by_url_type_for_ai_process(limit=10):
     df = pd.read_sql_query(
-        f"SELECT * FROM urls WHERE history = 0 AND (title IS NOT NULL OR description IS NOT NULL) AND ai_processed = 0 LIMIT {limit}",
+        "SELECT * FROM urls WHERE history = 0 AND (title IS NOT NULL OR description IS NOT NULL) AND ai_processed = 0 LIMIT ?",
         conn,
+        params=(int(limit),),
     )
     return df
 
@@ -289,8 +314,9 @@ def get_urls_by_url_type_for_ai_process(limit=10):
 @use_connection
 def get_url_like_unclassified(like_condition):
     df = pd.read_sql_query(
-        f"SELECT * FROM urls WHERE history = 0 AND url LIKE '{like_condition}' AND url_type IS NULL",
+        "SELECT * FROM urls WHERE history = 0 AND url LIKE ? AND url_type IS NULL",
         conn,
+        params=(like_condition,),
     )
     return df
 
@@ -331,7 +357,7 @@ def add_ai_log(instructions, response, model, prompt_file, prompt_name):
 
 @use_connection
 def get_ai_log():
-    df = pd.read_sql_query(f"SELECT * FROM ai_log", conn)
+    df = pd.read_sql_query("SELECT * FROM ai_log", conn)
     return df
 
 
@@ -443,7 +469,8 @@ def set_url_error(url, value):
 def set_url_type_by_id(url_id, url_type):
     c = conn.cursor()
     c.execute(
-        f"UPDATE urls SET url_type = '{url_type}', last_touch = NULL WHERE id = {url_id}"
+        "UPDATE urls SET url_type = ?, last_touch = NULL WHERE id = ?",
+        (url_type, int(url_id)),
     )
     conn.commit()
 
@@ -480,8 +507,8 @@ def get_untouched_urls(
         random_sql = " RANDOM() "
     else:
         random_sql = " created_at DESC "
-    sql = f"SELECT * FROM urls WHERE 1 = 1 AND history = 0 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT {limit}"
-    df = pd.read_sql_query(sql, conn)
+    sql = f"SELECT * FROM urls WHERE 1 = 1 AND history = 0 {where_sql} AND last_touch IS NULL ORDER BY {random_sql} LIMIT ?"
+    df = pd.read_sql_query(sql, conn, params=(int(limit),))
     return df
 
 
@@ -500,7 +527,8 @@ def untouch_url(url):
 
     c = conn.cursor()
     c.execute(
-        f"UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE url = '{url}'"
+        "UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE url = ?",
+        (url,),
     )
     conn.commit()
 
