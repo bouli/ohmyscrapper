@@ -364,11 +364,13 @@ def untouch_all_urls():
 def untouch_all_urls_with_errors(include_warnings=False):
     c = conn.cursor()
     c.execute(
-        "UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0 AND error LIKE 'error%'"
+        "UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0 AND error LIKE ?",
+        ("error%",),
     )
     if include_warnings:
         c.execute(
-            "UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0 AND error LIKE 'warning%'"
+            "UPDATE urls SET last_touch = NULL, url_type = NULL, error = NULL WHERE history = 0 AND error LIKE ?",
+            ("warning%",),
         )
 
     conn.commit()

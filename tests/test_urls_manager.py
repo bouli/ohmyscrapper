@@ -187,6 +187,9 @@ def test_url_manager_queries_handle_sql_sensitive_values(db_path):
         "url_type"
     ] == url_type
     assert first_row(urls_manager.get_urls_by_url_type(url_type))["url"] == url
+    assert urls_manager.get_url_like_unclassified(
+        "https://example.com/jobs/O'Reilly/%"
+    ).empty
 
 
 def test_url_field_setters_update_existing_rows(db_path):
