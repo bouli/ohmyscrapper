@@ -81,7 +81,7 @@ def test_seed_command_forwards_reset_flag(monkeypatch):
     [
         ("untouch-all", "untouch_all"),
         ("report", "export_report"),
-        ("merge_dbs", "merge_dbs"),
+        ("merge-dbs", "merge_dbs"),
     ],
 )
 def test_simple_commands_call_their_handlers(
@@ -92,6 +92,14 @@ def test_simple_commands_call_their_handlers(
     run_cli_with_common_patches(monkeypatch, command)
 
     handler.assert_called_once_with()
+
+
+def test_legacy_merge_dbs_command_remains_supported(monkeypatch):
+    merge_dbs = patch_attr(monkeypatch, ohmyscrapper, "merge_dbs")
+
+    run_cli_with_common_patches(monkeypatch, "merge_dbs")
+
+    merge_dbs.assert_called_once_with()
 
 
 def test_untouch_errors_command_excludes_warnings_by_default(monkeypatch):
@@ -353,7 +361,8 @@ def test_start_command_uses_default_load_and_skips_ai_by_default(monkeypatch):
     process_with_ai.assert_not_called()
 
 
-def test_cleancache_command_cleans_configured_cache(monkeypatch):
+@pytest.mark.parametrize("command", ["clean-cache", "cleancache"])
+def test_clean_cache_commands_clean_configured_cache(monkeypatch, command):
     cache = Mock()
     cache_factory = patch_attr(
         monkeypatch,
@@ -368,7 +377,25 @@ def test_cleancache_command_cleans_configured_cache(monkeypatch):
         Mock(return_value="cache-dir"),
     )
 
-    run_cli_with_common_patches(monkeypatch, "cleancache")
+    run_cli_with_common_patches(monkeypatch, command)
 
     cache_factory.assert_called_once_with(cache_folder="cache-dir")
     cache.clean.assert_called_once_with()
+
+
+def test_help_shows_standardized_cli_command_names(monkeypatch):
+    output = io.StringIO()
+    update = patch_attr(monkeypatch, ohmyscrapper, "update")
+    monkeypatch.setattr(sys, "argv", ["ohmyscrapper", "--help"])
+
+    with redirect_stdout(output):
+        with pytest.raises(SystemExit) as exit_context:
+            ohmyscrapper.main()
+
+    help_text = output.getvalue()
+    assert exit_context.value.code == 0
+    assert "merge-dbs" in help_text
+    assert "clean-cache" in help_text
+    assert "merge_dbs" in help_text
+    assert "cleancache" in help_text
+    update.assert_called_once_with()

@@ -173,9 +173,13 @@ def main():
     report_parser = subparsers.add_parser(
         "report", help="📜🖋️ Export urls report to csv."
     )
-    merge_parser = subparsers.add_parser("merge_dbs", help="Merge databases.")
+    merge_parser = subparsers.add_parser(
+        "merge-dbs", aliases=["merge_dbs"], help="Merge databases."
+    )
 
-    clean_cache_parser = subparsers.add_parser("cleancache", help="Clean cache.")
+    clean_cache_parser = subparsers.add_parser(
+        "clean-cache", aliases=["cleancache"], help="Clean cache."
+    )
     dashboard_parser = subparsers.add_parser(
         "dashboard", help="Start a local scraping jobs dashboard."
     )
@@ -271,7 +275,7 @@ def main():
         export_report()
         return
 
-    if args.command == "merge_dbs":
+    if args.command in ("merge-dbs", "merge_dbs"):
         merge_dbs()
         return
 
@@ -296,7 +300,7 @@ def main():
         export_report()
         return
 
-    if args.command == "cleancache":
+    if args.command in ("clean-cache", "cleancache"):
         cache = unforgettable(cache_folder=config.get_dir("cache"))
         cache.clean()
         return
