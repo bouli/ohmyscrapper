@@ -1,4 +1,5 @@
 import sqlite3
+from unittest.mock import Mock
 
 import pytest
 
@@ -81,6 +82,40 @@ def test_scraping_run_validates_status_and_counter_names(db_path):
         urls_manager.finish_scraping_run(run_id, status="running")
 
 
+def test_use_connection_retries_after_sqlite_operational_error(db_path, monkeypatch):
+    update_db = Mock()
+    monkeypatch.setattr(urls_manager, "update_db", update_db)
+    calls = []
+
+    @urls_manager.use_connection
+    def flaky_operation():
+        calls.append("called")
+        if len(calls) == 1:
+            raise sqlite3.OperationalError("no such column: h1")
+        return "ok"
+
+    assert flaky_operation() == "ok"
+    assert calls == ["called", "called"]
+    update_db.assert_called_once_with()
+
+
+def test_use_connection_does_not_retry_non_sqlite_errors(db_path, monkeypatch):
+    update_db = Mock()
+    monkeypatch.setattr(urls_manager, "update_db", update_db)
+    calls = []
+
+    @urls_manager.use_connection
+    def broken_operation():
+        calls.append("called")
+        raise ValueError("bad input")
+
+    with pytest.raises(ValueError, match="bad input"):
+        broken_operation()
+
+    assert calls == ["called"]
+    update_db.assert_not_called()
+
+
 def test_add_url_normalizes_trims_title_and_ignores_duplicates(db_path):
     urls_manager.add_url(
         "http://example.com/jobs?utm_source=news#heading",
@@ -134,6 +169,27 @@ def test_url_valid_prefix_seed_lifecycle(db_path):
     urls_manager.reset_seeds()
 
     assert urls_manager.get_urls_valid_prefix().empty
+
+
+def test_url_manager_queries_handle_sql_sensitive_values(db_path):
+    url_type = "engineer's role"
+    url_prefix = "https://example.com/jobs/O'Reilly/%"
+    url = "https://example.com/sql-sensitive"
+
+    urls_manager.add_urls_valid_prefix(url_prefix, url_type)
+    prefix = first_row(urls_manager.get_urls_valid_prefix_by_type(url_type))
+    urls_manager.add_url(url)
+    row_id = first_row(urls_manager.get_url_by_url(url))["id"]
+    urls_manager.set_url_type_by_id(row_id, url_type)
+
+    assert prefix["url_prefix"] == url_prefix
+    assert first_row(urls_manager.get_urls_valid_prefix_by_id(prefix["id"]))[
+        "url_type"
+    ] == url_type
+    assert first_row(urls_manager.get_urls_by_url_type(url_type))["url"] == url
+    assert urls_manager.get_url_like_unclassified(
+        "https://example.com/jobs/O'Reilly/%"
+    ).empty
 
 
 def test_url_field_setters_update_existing_rows(db_path):
@@ -282,6 +338,38 @@ def test_bulk_untouch_operations_reset_active_urls_only(db_path):
     assert first_row(
         urls_manager.get_url_by_url("https://example.com/history-error")
     )["last_touch"] == 1234567890
+
+
+def test_untouch_errors_can_include_active_warnings(db_path):
+    urls_manager.add_url("https://example.com/active-error")
+    urls_manager.add_url("https://example.com/active-warning")
+
+    for url in [
+        "https://example.com/active-error",
+        "https://example.com/active-warning",
+    ]:
+        row_id = first_row(urls_manager.get_url_by_url(url))["id"]
+        urls_manager.set_url_type_by_id(row_id, "job")
+        urls_manager.touch_url(url)
+
+    urls_manager.set_url_error("https://example.com/active-error", "error timeout")
+    urls_manager.set_url_error("https://example.com/active-warning", "warning empty")
+
+    urls_manager.untouch_all_urls_with_errors(include_warnings=True)
+
+    active_error = first_row(
+        urls_manager.get_url_by_url("https://example.com/active-error")
+    )
+    active_warning = first_row(
+        urls_manager.get_url_by_url("https://example.com/active-warning")
+    )
+
+    assert active_error["last_touch"] is None
+    assert active_error["url_type"] is None
+    assert active_error["error"] is None
+    assert active_warning["last_touch"] is None
+    assert active_warning["url_type"] is None
+    assert active_warning["error"] is None
 
 
 def test_get_urls_report_excludes_parent_and_inherits_parent_title(db_path):

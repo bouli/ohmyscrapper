@@ -7,7 +7,7 @@ def untouch_all():
     return
 
 
-def untouch_all_urls_with_errors():
-    urls_manager.untouch_all_urls_with_errors()
+def untouch_all_urls_with_errors(include_warnings=False):
+    urls_manager.untouch_all_urls_with_errors(include_warnings=include_warnings)
     print("🙌 urls with errors have been untouched")
     return

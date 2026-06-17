@@ -22,16 +22,13 @@ def export_urls(limit=0, csv_file="urls.csv", simplify=False):
     print("--------------------")
     print("📊🖋️ Urls exported to", csv_file)
     if "description" in df:
-        try:
-            df.replace(
-                {
-                    "description": {r"\n": " "},
-                },
-                regex=True,
-                inplace=True,
-            )
-        except:
-            pass
+        df.replace(
+            {
+                "description": {r"\n": " "},
+            },
+            regex=True,
+            inplace=True,
+        )
     df.to_html(csv_file + "-preview.html", index=False)
     print("📜🖋️ Urls preview exported to", csv_file + "-preview.html")
     print("--------------------")

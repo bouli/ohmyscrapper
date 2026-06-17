@@ -206,28 +206,28 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
     db_fields["url_destiny"] = None
 
     if "metatags" in sniffing_config.keys():
-        for tag, bd_field in sniffing_config["metatags"].items():
+        for tag, db_field in sniffing_config["metatags"].items():
             if tag in url_report.keys():
-                if bd_field[:1] == "+":
-                    if db_fields[bd_field[1:]] is None:
-                        db_fields[bd_field[1:]] = ""
-                    db_fields[bd_field[1:]] = (
-                        db_fields[bd_field[1:]] + " " + url_report[tag]
+                if db_field[:1] == "+":
+                    if db_fields[db_field[1:]] is None:
+                        db_fields[db_field[1:]] = ""
+                    db_fields[db_field[1:]] = (
+                        db_fields[db_field[1:]] + " " + url_report[tag]
                     )
                 else:
-                    db_fields[bd_field] = url_report[tag]
+                    db_fields[db_field] = url_report[tag]
 
     if "bodytags" in sniffing_config.keys():
-        for tag, bd_field in sniffing_config["bodytags"].items():
+        for tag, db_field in sniffing_config["bodytags"].items():
             if tag in url_report.keys():
-                if bd_field[:1] == "+":
-                    if db_fields[bd_field[1:]] is None:
-                        db_fields[bd_field[1:]] = ""
-                    db_fields[bd_field[1:]] = (
-                        db_fields[bd_field[1:]] + " " + url_report[tag]
+                if db_field[:1] == "+":
+                    if db_fields[db_field[1:]] is None:
+                        db_fields[db_field[1:]] = ""
+                    db_fields[db_field[1:]] = (
+                        db_fields[db_field[1:]] + " " + url_report[tag]
                     )
                 else:
-                    db_fields[bd_field] = url_report[tag]
+                    db_fields[db_field] = url_report[tag]
 
     if (
         "atags" in sniffing_config.keys()
@@ -269,10 +269,6 @@ def process_sniffed_url(url_report, url, sniffing_config, verbose=False):
             url=url["url"],
             value="warning: no title, url_destiny or description was founded",
         )
-
-
-def isNaN(num):
-    return num != num
 
 
 def get_scraping_run_progress(run_id):

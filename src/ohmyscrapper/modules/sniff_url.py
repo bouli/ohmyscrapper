@@ -15,10 +15,13 @@ cache = unforgettable(cache_folder=config.get_dir("cache"))
 def sniff_url(
     url="https://www.linkedin.com/in/cesardesouzacardoso/",
     silent=False,
-    sniffing_config={},
+    sniffing_config=None,
     driver=None,
     proxy=None,
 ):
+    if sniffing_config is None:
+        sniffing_config = {}
+
     final_report = {}
     if "metatags" in sniffing_config:
         metatags_to_search = sniffing_config["metatags"]
@@ -40,14 +43,14 @@ def sniff_url(
             "h2": "",
         }
 
-    if type(metatags_to_search) is dict:
+    if isinstance(metatags_to_search, dict):
         metatags_to_search = list(metatags_to_search.keys())
 
     # force clean concatenate without any separator
-    if type(body_tags_to_search) is dict:
+    if isinstance(body_tags_to_search, dict):
         body_tags_to_search = list(body_tags_to_search.keys())
 
-    if type(body_tags_to_search) is list:
+    if isinstance(body_tags_to_search, list):
         body_tags_to_search = dict.fromkeys(body_tags_to_search, " ")
 
     if not silent:
@@ -190,7 +193,10 @@ def _complementary_report(final_report, soup, silent):
     return final_report
 
 
-def get_tags(url, sniffing_config={}, driver=None, proxy=None):
+def get_tags(url, sniffing_config=None, driver=None, proxy=None):
+    if sniffing_config is None:
+        sniffing_config = {}
+
     sniff_kwargs = {
         "url": url,
         "silent": True,

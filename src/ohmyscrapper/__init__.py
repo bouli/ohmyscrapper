@@ -87,7 +87,12 @@ def main():
         "untouch-errors",
         help="Untouch all urls with errors. That resets classification",
     )
-
+    untouch_errors_parser.add_argument(
+        "--include-warnings",
+        default=False,
+        help="Reset warnings as well.",
+        action="store_true",
+    )
     classify_urls_parser = subparsers.add_parser(
         "classify-urls", help="Classify loaded urls"
     )
@@ -168,9 +173,13 @@ def main():
     report_parser = subparsers.add_parser(
         "report", help="📜🖋️ Export urls report to csv."
     )
-    merge_parser = subparsers.add_parser("merge_dbs", help="Merge databases.")
+    merge_parser = subparsers.add_parser(
+        "merge-dbs", aliases=["merge_dbs"], help="Merge databases."
+    )
 
-    clean_cache_parser = subparsers.add_parser("cleancache", help="Clean cache.")
+    clean_cache_parser = subparsers.add_parser(
+        "clean-cache", aliases=["cleancache"], help="Clean cache."
+    )
     dashboard_parser = subparsers.add_parser(
         "dashboard", help="Start a local scraping jobs dashboard."
     )
@@ -198,7 +207,8 @@ def main():
         return
 
     if args.command == "untouch-errors":
-        untouch_all_urls_with_errors()
+
+        untouch_all_urls_with_errors(include_warnings=args.include_warnings)
         return
 
     if args.command == "sniff-url":
@@ -214,7 +224,7 @@ def main():
         return
 
     if args.command == "scrap-urls":
-        if args.input != None:
+        if args.input is not None:
             load_txt(file_name=args.input, verbose=args.verbose)
 
         if args.queue:
@@ -265,13 +275,13 @@ def main():
         export_report()
         return
 
-    if args.command == "merge_dbs":
+    if args.command in ("merge-dbs", "merge_dbs"):
         merge_dbs()
         return
 
     if args.command == "start":
         seed()
-        if args.input != None:
+        if args.input is not None:
             load_txt(file_name=args.input)
         else:
             load_txt()
@@ -290,7 +300,7 @@ def main():
         export_report()
         return
 
-    if args.command == "cleancache":
+    if args.command in ("clean-cache", "cleancache"):
         cache = unforgettable(cache_folder=config.get_dir("cache"))
         cache.clean()
         return

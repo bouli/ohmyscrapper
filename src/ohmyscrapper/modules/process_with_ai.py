@@ -148,7 +148,7 @@ def process_with_ai(recursive=True, triggered_times=0, bypass_budget_control=Fal
 
 def _get_prompt():
     prompts_path = config.get_dir(param="prompts")
-    default_prommpt_file = os.path.join(
+    default_prompt_file = os.path.join(
         prompts_path, config.get_ai("default_prompt_file")
     )
 
@@ -161,7 +161,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
 """
     if not os.path.exists(prompts_path):
         os.mkdir(prompts_path)
-        open(default_prommpt_file, "w").write(default_prompt)
+        open(default_prompt_file, "w").write(default_prompt)
         print(
             f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there."
         )
@@ -169,7 +169,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
 
     prompt_files = os.listdir(prompts_path)
     if len(prompt_files) == 0:
-        open(default_prommpt_file, "w").write(default_prompt)
+        open(default_prompt_file, "w").write(default_prompt)
         print(
             f"You didn't have a prompt file. One was created in the /{prompts_path} folder. You can change it there."
         )
@@ -190,7 +190,7 @@ Process with AI this prompt: {ohmyscrapper_texts}
             return False
         try:
             prompt = prompts[int(input_prompt)]
-        except:
+        except (ValueError, KeyError):
             print("! Invalid prompt\n")
             prompt = _get_prompt()
     return prompt
