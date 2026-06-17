@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
-from ohmyscrapper.core import config_files
+import conveoconfi
 
 default_app_dir = "ohmyscrapper"
+default_files_dir = Path(__file__).resolve().parent / "default_files"
 
 
 def get_dir(param="ohmyscrapper"):
@@ -11,8 +13,11 @@ def get_dir(param="ohmyscrapper"):
     if param == default_app_dir:
         folder = "./" + param
     else:
-        folder = config_files.get_param(
-            parent_param=parent_param, param=param, default_app_dir=default_app_dir
+        folder = conveoconfi.get_param(
+            parent_param=parent_param,
+            param=param,
+            default_app_dir=default_app_dir,
+            default_files_dir=default_files_dir,
         )
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -21,43 +26,59 @@ def get_dir(param="ohmyscrapper"):
 
 def get_files(param):
     parent_param = "default_files"
-    return config_files.get_param(
-        parent_param=parent_param, param=param, default_app_dir=default_app_dir
+    return conveoconfi.get_param(
+        parent_param=parent_param,
+        param=param,
+        default_app_dir=default_app_dir,
+        default_files_dir=default_files_dir,
     )
 
 
 def get_db(param="db_file"):
     if param == "folder":
         return get_dir(param="db")
-    return config_files.get_param(
-        parent_param="db", param=param, default_app_dir=default_app_dir
+    return conveoconfi.get_param(
+        parent_param="db",
+        param=param,
+        default_app_dir=default_app_dir,
+        default_files_dir=default_files_dir,
     )
 
 
 def get_ai(param):
-    return config_files.get_param(
-        parent_param="ai", param=param, default_app_dir=default_app_dir
+    return conveoconfi.get_param(
+        parent_param="ai",
+        param=param,
+        default_app_dir=default_app_dir,
+        default_files_dir=default_files_dir,
     )
 
 
 def get_sniffing(param):
-    return config_files.get_param(
-        parent_param="sniffing", param=param, default_app_dir=default_app_dir
+    return conveoconfi.get_param(
+        parent_param="sniffing",
+        param=param,
+        default_app_dir=default_app_dir,
+        default_files_dir=default_files_dir,
     )
 
 
 def get_queue(param):
-    return config_files.get_param(
-        parent_param="queue", param=param, default_app_dir=default_app_dir
+    return conveoconfi.get_param(
+        parent_param="queue",
+        param=param,
+        default_app_dir=default_app_dir,
+        default_files_dir=default_files_dir,
     )
 
 
 def load_config(force_default=False):
     config_file_name = "config.yaml"
-    config_params = config_files.create_and_read_config_file(
+    config_params = conveoconfi.create_and_read_config_file(
         file_name=config_file_name,
         default_app_dir=default_app_dir,
         force_default=force_default,
+        default_files_dir=default_files_dir,
     )
 
     if config_params is None or "default_dirs" not in config_params:
@@ -68,22 +89,26 @@ def load_config(force_default=False):
 
 def url_types_file_exists():
     url_types_file = get_files("url_types")
-    return config_files.config_file_exists(
-        url_types_file, default_app_dir=default_app_dir
-    )
+    return conveoconfi.config_file_exists(url_types_file, default_app_dir=default_app_dir)
 
 
 def get_url_types():
     url_types_file = get_files("url_types")
-    return config_files.create_and_read_config_file(
-        url_types_file, default_app_dir=default_app_dir, complete_file=False
+    return conveoconfi.create_and_read_config_file(
+        url_types_file,
+        default_app_dir=default_app_dir,
+        complete_file=False,
+        default_files_dir=default_files_dir,
     )
 
 
 def get_url_sniffing():
     file = get_files("url_sniffing")
-    return config_files.create_and_read_config_file(
-        file, default_app_dir=default_app_dir, complete_file=False
+    return conveoconfi.create_and_read_config_file(
+        file,
+        default_app_dir=default_app_dir,
+        complete_file=False,
+        default_files_dir=default_files_dir,
     )
 
 
@@ -98,11 +123,11 @@ def append_url_types(url_types):
 
 
 def overwrite_config_file(data, file_name):
-    config_files.overwrite_config_file(data, file_name, default_app_dir=default_app_dir)
+    conveoconfi.overwrite_config_file(file_name, default_app_dir, data)
 
 
 def _append_config_file(data, file_name):
-    config_files.append_config_file(data, file_name, default_app_dir=default_app_dir)
+    conveoconfi.append_config_file(file_name, default_app_dir, data)
 
 
 def update():
