@@ -89,7 +89,9 @@ def load_config(force_default=False):
 
 def url_types_file_exists():
     url_types_file = get_files("url_types")
-    return conveoconfi.config_file_exists(url_types_file, default_app_dir=default_app_dir)
+    return conveoconfi.config_file_exists(
+        url_types_file, default_app_dir=default_app_dir
+    )
 
 
 def get_url_types():
